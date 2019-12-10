@@ -14,14 +14,20 @@ param (
     [string]$uniqueName = "default", 
     [string]$subscriptionId = "default",
     [string]$location = "default",
-	[string]$resourceGroupName = "default"
+	[string]$resourceGroupName = "default",
+	$executeAdf = $false,
+	$executeAdb = $true,
+	$executeAml = $false,
+	$executeStagingLoad = $false,
+	$deployAdf = $false
 )
 
-$executeAdf = $true
-$executeAdb = $false
-$executeAml = $true
-$executeStagingLoad = $false
-$deployAdf = $true
+#$executeAdf = $false
+#$executeAdb = $true
+#$executeAml = $false
+#$executeStagingLoad = $false
+#$deployAdf = $false
+
 #$location = "eastus"
 #$uniqueName = "msdaiete"
 if($uniqueName -eq "default")
