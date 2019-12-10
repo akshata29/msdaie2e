@@ -1,0 +1,23 @@
+{
+    "name": "2_nycrawyellowtaxi",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "nyctaxiadlsls",
+            "type": "LinkedServiceReference"
+        },
+        "folder": {
+            "name": "2_RawToCurated"
+        },
+        "annotations": [],
+        "type": "Parquet",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "fileSystem": "nyctaxi"
+            },
+            "compressionCodec": "snappy"
+        },
+        "schema": []
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

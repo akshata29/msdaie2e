@@ -1,0 +1,45 @@
+{
+    "name": "1_nycstagingtaxizone",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "nyctaxiadlsls",
+            "type": "LinkedServiceReference"
+        },
+        "folder": {
+            "name": "1_StagingToRaw"
+        },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "fileName": "taxi_zone_lookup.csv",
+                "folderPath": "nyctaxi-staging/reference-data",
+                "fileSystem": "nyctaxi"
+            },
+            "columnDelimiter": ",",
+            "escapeChar": "\\",
+            "firstRowAsHeader": true,
+            "quoteChar": "\""
+        },
+        "schema": [
+            {
+                "name": "LocationID",
+                "type": "String"
+            },
+            {
+                "name": "Borough",
+                "type": "String"
+            },
+            {
+                "name": "Zone",
+                "type": "String"
+            },
+            {
+                "name": "service_zone",
+                "type": "String"
+            }
+        ]
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,29 @@
+{
+    "name": "0_nyctaxistagingds",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "nyctaxiadlsls",
+            "type": "LinkedServiceReference"
+        },
+        "folder": {
+            "name": "0_SourceToStaging"
+        },
+        "annotations": [],
+        "type": "Binary",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "fileName": {
+                    "value": "@{variables('nycTaxiRelativeUrl')}",
+                    "type": "Expression"
+                },
+                "folderPath": {
+                    "value": "nyctaxi-staging/transactional-data/type=@{variables('nycTaxiType')}/year=@{item().Year}/month=@{item().Month}/",
+                    "type": "Expression"
+                },
+                "fileSystem": "nyctaxi"
+            }
+        }
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

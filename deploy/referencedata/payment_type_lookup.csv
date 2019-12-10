@@ -1,0 +1,25 @@
+payment_type|abbreviation|description
+1||Credit card
+2||Cash
+3||No charge
+4||Dispute
+5||Unknown
+6||Voided trip
+7|CAS|Cash
+8|CASH|Cash
+9|CRD|Credit card
+10|CRE|Credit card
+11|CREDIT|Credit card
+12|CSH|Cash
+13|Cas|Cash
+14|Cash|Cash
+15|Cre|Credit card
+16|Credit|Credit card
+17|DIS|Dispute
+18|Dis|Dispute
+19|Dispute|Dispute
+20|NA |Unknown
+21|NOC|No charge
+22|No |No charge
+23|No Charge|No charge
+24|UNK|Unknown

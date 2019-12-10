@@ -1,0 +1,104 @@
+{
+    "name": "1_nycstaginggreentaxiPost2017",
+    "properties": {
+        "description": "2017 and beyond",
+        "linkedServiceName": {
+            "referenceName": "nyctaxiadlsls",
+            "type": "LinkedServiceReference"
+        },
+        "folder": {
+            "name": "1_StagingToRaw"
+        },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "fileSystem": "nyctaxi"
+            },
+            "columnDelimiter": ",",
+            "escapeChar": "\\",
+            "firstRowAsHeader": true,
+            "quoteChar": "\""
+        },
+        "schema": [
+            {
+                "name": "VendorID",
+                "type": "Int32"
+            },
+            {
+                "name": "lpep_pickup_datetime",
+                "type": "DateTime"
+            },
+            {
+                "name": "lpep_dropoff_datetime",
+                "type": "DateTime"
+            },
+            {
+                "name": "store_and_fwd_flag",
+                "type": "String"
+            },
+            {
+                "name": "RatecodeID",
+                "type": "Int32"
+            },
+            {
+                "name": "PULocationID",
+                "type": "Int32"
+            },
+            {
+                "name": "DOLocationID",
+                "type": "Int32"
+            },
+            {
+                "name": "passenger_count",
+                "type": "Int32"
+            },
+            {
+                "name": "trip_distance",
+                "type": "Double"
+            },
+            {
+                "name": "fare_amount",
+                "type": "Double"
+            },
+            {
+                "name": "extra",
+                "type": "Double"
+            },
+            {
+                "name": "mta_tax",
+                "type": "Double"
+            },
+            {
+                "name": "tip_amount",
+                "type": "Double"
+            },
+            {
+                "name": "tolls_amount",
+                "type": "Double"
+            },
+            {
+                "name": "ehail_fee",
+                "type": "Double"
+            },
+            {
+                "name": "improvement_surcharge",
+                "type": "Double"
+            },
+            {
+                "name": "total_amount",
+                "type": "Double"
+            },
+            {
+                "name": "payment_type",
+                "type": "Int32"
+            },
+            {
+                "name": "trip_type",
+                "type": "Int32"
+            }
+        ]
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

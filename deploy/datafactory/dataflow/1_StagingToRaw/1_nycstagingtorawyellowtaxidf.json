@@ -1,0 +1,98 @@
+{
+    "name": "1_nycstagingtorawyellowtaxidf",
+    "properties": {
+        "folder": {
+            "name": "1_StagingToRaw"
+        },
+        "type": "MappingDataFlow",
+        "typeProperties": {
+            "sources": [
+                {
+                    "dataset": {
+                        "referenceName": "1_nycstagingyellowtaxipre2015",
+                        "type": "DatasetReference"
+                    },
+                    "name": "StagingYellowTaxiPre2015"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "1_nycstagingyellowtaxi20152016H1",
+                        "type": "DatasetReference"
+                    },
+                    "name": "StagingYellowTaxi20152016H1"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "1_nycstagingyellowtaxi2016H2",
+                        "type": "DatasetReference"
+                    },
+                    "name": "StagingYellowTaxi2016H2"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "1_nycstagingyellowtaxiPost2017",
+                        "type": "DatasetReference"
+                    },
+                    "name": "StagingYellowTaxiPost2017"
+                }
+            ],
+            "sinks": [
+                {
+                    "dataset": {
+                        "referenceName": "1_nycrawyellowtaxi",
+                        "type": "DatasetReference"
+                    },
+                    "name": "PersistPre2015"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "1_nycrawyellowtaxi",
+                        "type": "DatasetReference"
+                    },
+                    "name": "Persist2015H22016H1"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "1_nycrawyellowtaxi",
+                        "type": "DatasetReference"
+                    },
+                    "name": "Persist2016H2"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "1_nycrawyellowtaxi",
+                        "type": "DatasetReference"
+                    },
+                    "name": "PersistPost2017"
+                }
+            ],
+            "transformations": [
+                {
+                    "name": "DerivedColumnsPre2015"
+                },
+                {
+                    "name": "SelectPre2015"
+                },
+                {
+                    "name": "DerivedColumns2015H22016H1"
+                },
+                {
+                    "name": "Select2015H22016H1"
+                },
+                {
+                    "name": "DerivedColumns2016H2"
+                },
+                {
+                    "name": "Select2016H2"
+                },
+                {
+                    "name": "DerivedColumnsPost2017"
+                },
+                {
+                    "name": "SelectPost2017"
+                }
+            ],
+            "script": "\n\nsource(output(\n\t\tvendor_id as string,\n\t\tpickup_datetime as string,\n\t\tdropoff_datetime as string,\n\t\tpassenger_count as integer,\n\t\ttrip_distance as double,\n\t\tpickup_longitude as double,\n\t\tpickup_latitude as double,\n\t\trate_code as integer,\n\t\tstore_and_fwd_flag as string,\n\t\tdropoff_longitude as double,\n\t\tdropoff_latitude as double,\n\t\tpayment_type as string,\n\t\tfare_amount as double,\n\t\tsurcharge as string,\n\t\tmta_tax as double,\n\t\ttip_amount as double,\n\t\ttolls_amount as double,\n\t\ttotal_amount as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['nyctaxi-staging/transactional-data/type=yellow/year=2009/month=*/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2010/month=*/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2011/month=*/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2012/month=*/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2013/month=*/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2014/month=*/*.csv']) ~> StagingYellowTaxiPre2015\nsource(output(\n\t\tVendorID as string,\n\t\ttpep_pickup_datetime as string,\n\t\ttpep_dropoff_datetime as string,\n\t\tpassenger_count as integer,\n\t\ttrip_distance as double,\n\t\tpickup_longitude as double,\n\t\tpickup_latitude as double,\n\t\tRateCodeID as integer,\n\t\tstore_and_fwd_flag as string,\n\t\tdropoff_longitude as double,\n\t\tdropoff_latitude as double,\n\t\tpayment_type as string,\n\t\tfare_amount as double,\n\t\textra as string,\n\t\tmta_tax as double,\n\t\ttip_amount as double,\n\t\ttolls_amount as double,\n\t\timprovement_surcharge as double,\n\t\ttotal_amount as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['nyctaxi-staging/transactional-data/type=yellow/year=2015/month=*/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2016/month=01/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2016/month=02/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2016/month=03/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2016/month=04/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2016/month=05/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2016/month=06/*.csv']) ~> StagingYellowTaxi20152016H1\nsource(output(\n\t\tVendorID as integer,\n\t\ttpep_pickup_datetime as timestamp,\n\t\ttpep_dropoff_datetime as timestamp,\n\t\tstore_and_fwd_flag as string,\n\t\tRatecodeID as integer,\n\t\tPULocationID as integer,\n\t\tDOLocationID as integer,\n\t\tpassenger_count as integer,\n\t\ttrip_distance as double,\n\t\tfare_amount as double,\n\t\textra as double,\n\t\tmta_tax as double,\n\t\ttip_amount as double,\n\t\ttolls_amount as double,\n\t\tehail_fee as double,\n\t\timprovement_surcharge as double,\n\t\ttotal_amount as double,\n\t\tpayment_type as integer,\n\t\ttrip_type as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['nyctaxi-staging/transactional-data/type=yellow/year=2016/month=07/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2016/month=08/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2016/month=09/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2016/month=10/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2016/month=11/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2016/month=12/*.csv']) ~> StagingYellowTaxi2016H2\nsource(output(\n\t\tVendorID as integer,\n\t\ttpep_pickup_datetime as timestamp,\n\t\ttpep_dropoff_datetime as timestamp,\n\t\tstore_and_fwd_flag as string,\n\t\tRatecodeID as integer,\n\t\tPULocationID as integer,\n\t\tDOLocationID as integer,\n\t\tpassenger_count as integer,\n\t\ttrip_distance as double,\n\t\tfare_amount as double,\n\t\textra as double,\n\t\tmta_tax as double,\n\t\ttip_amount as double,\n\t\ttolls_amount as double,\n\t\tehail_fee as double,\n\t\timprovement_surcharge as double,\n\t\ttotal_amount as double,\n\t\tpayment_type as integer,\n\t\ttrip_type as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['nyctaxi-staging/transactional-data/type=yellow/year=2017/month=*/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2018/month=*/*.csv','nyctaxi-staging/transactional-data/type=yellow/year=2019/month=*/*.csv']) ~> StagingYellowTaxiPost2017\nStagingYellowTaxiPre2015 derive(pickup_location_id = toInteger('0'),\n\t\tdropoff_location_id = toInteger('0'),\n\t\timprovement_surcharge = toDouble('0'),\n\t\ttrip_year = toInteger(left(toString(pickup_datetime),4)),\n\t\ttrip_month = toInteger(substring(toString(pickup_datetime), 6, 2)),\n\t\ttaxi_type = 'yellow') ~> DerivedColumnsPre2015\nDerivedColumnsPre2015 select(mapColumn(\n\t\ttaxi_type,\n\t\tvendor_id,\n\t\tpickup_datetime,\n\t\tdropoff_datetime,\n\t\tstore_and_fwd_flag,\n\t\trate_code_id = rate_code,\n\t\tpickup_location_id,\n\t\tdropoff_location_id,\n\t\tpickup_longitude,\n\t\tpickup_latitude,\n\t\tdropoff_longitude,\n\t\tdropoff_latitude,\n\t\tpassenger_count,\n\t\ttrip_distance,\n\t\tfare_amount,\n\t\textra = surcharge,\n\t\tmta_tax,\n\t\ttip_amount,\n\t\ttolls_amount,\n\t\timprovement_surcharge,\n\t\ttotal_amount,\n\t\tpayment_type,\n\t\ttrip_year,\n\t\ttrip_month\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectPre2015\nStagingYellowTaxi20152016H1 derive(pickup_location_id = toInteger('0'),\n\t\tdropoff_location_id = toInteger('0'),\n\t\ttrip_year = toInteger(left(toString(tpep_pickup_datetime),4)),\n\t\ttrip_month = toInteger(substring(toString(tpep_pickup_datetime), 6, 2)),\n\t\ttaxi_type = 'yellow') ~> DerivedColumns2015H22016H1\nDerivedColumns2015H22016H1 select(mapColumn(\n\t\ttaxi_type,\n\t\tvendor_id = VendorID,\n\t\tpickup_datetime = tpep_pickup_datetime,\n\t\tdropoff_datetime = tpep_dropoff_datetime,\n\t\tstore_and_fwd_flag,\n\t\trate_code_id = RateCodeID,\n\t\tpickup_location_id,\n\t\tdropoff_location_id,\n\t\tpickup_longitude,\n\t\tpickup_latitude,\n\t\tdropoff_longitude,\n\t\tdropoff_latitude,\n\t\tpassenger_count,\n\t\ttrip_distance,\n\t\tfare_amount,\n\t\textra,\n\t\tmta_tax,\n\t\ttip_amount,\n\t\ttolls_amount,\n\t\timprovement_surcharge,\n\t\ttotal_amount,\n\t\tpayment_type,\n\t\ttrip_year,\n\t\ttrip_month\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select2015H22016H1\nStagingYellowTaxi2016H2 derive(pickup_longitude = '',\n\t\tpickup_latitude = '',\n\t\tdropoff_longitude = '',\n\t\tdropoff_latitude = '',\n\t\ttrip_year = toInteger(left(toString(tpep_pickup_datetime),4)),\n\t\ttrip_month = toInteger(substring(toString(tpep_pickup_datetime), 6, 2)),\n\t\ttaxi_type = 'yellow') ~> DerivedColumns2016H2\nDerivedColumns2016H2 select(mapColumn(\n\t\ttaxi_type,\n\t\tvendor_id = VendorID,\n\t\tpickup_datetime = tpep_pickup_datetime,\n\t\tdropoff_datetime = tpep_dropoff_datetime,\n\t\tstore_and_fwd_flag,\n\t\trate_code_id = RatecodeID,\n\t\tpickup_location_id = PULocationID,\n\t\tdropoff_location_id = DOLocationID,\n\t\tpickup_longitude,\n\t\tpickup_latitude,\n\t\tdropoff_longitude,\n\t\tdropoff_latitude,\n\t\tpassenger_count,\n\t\ttrip_distance,\n\t\tfare_amount,\n\t\textra,\n\t\tmta_tax,\n\t\ttip_amount,\n\t\ttolls_amount,\n\t\timprovement_surcharge,\n\t\ttotal_amount,\n\t\tpayment_type,\n\t\ttrip_year,\n\t\ttrip_month\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select2016H2\nStagingYellowTaxiPost2017 derive(pickup_longitude = '',\n\t\tpickup_latitude = '',\n\t\tdropoff_longitude = '',\n\t\tdropoff_latitude = '',\n\t\ttrip_year = toInteger(left(toString(tpep_pickup_datetime),4)),\n\t\ttrip_month = toInteger(substring(toString(tpep_pickup_datetime), 6, 2)),\n\t\ttaxi_type = 'yellow') ~> DerivedColumnsPost2017\nDerivedColumnsPost2017 select(mapColumn(\n\t\ttaxi_type,\n\t\tvendor_id = VendorID,\n\t\tpickup_datetime = tpep_pickup_datetime,\n\t\tdropoff_datetime = tpep_dropoff_datetime,\n\t\tstore_and_fwd_flag,\n\t\trate_code_id = RatecodeID,\n\t\tpickup_location_id = PULocationID,\n\t\tdropoff_location_id = DOLocationID,\n\t\tpickup_longitude,\n\t\tpickup_latitude,\n\t\tdropoff_longitude,\n\t\tdropoff_latitude,\n\t\tpassenger_count,\n\t\ttrip_distance,\n\t\tfare_amount,\n\t\textra,\n\t\tmta_tax,\n\t\ttip_amount,\n\t\ttolls_amount,\n\t\timprovement_surcharge,\n\t\ttotal_amount,\n\t\tpayment_type,\n\t\ttrip_year,\n\t\ttrip_month\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectPost2017\nSelectPre2015 sink(input(\n\t\ttaxi_type as string,\n\t\tvendor_id as integer,\n\t\tpickup_datetime as timestamp,\n\t\tdropoff_datetime as timestamp,\n\t\tstore_and_fwd_flag as string,\n\t\trate_code_id as integer,\n\t\tpickup_location_id as string,\n\t\tdropoff_location_id as string,\n\t\tpickup_longitude as double,\n\t\tpickup_latitude as double,\n\t\tdropoff_longitude as double,\n\t\tdropoff_latitude as double,\n\t\tpassenger_count as integer,\n\t\ttrip_distance as double,\n\t\tfare_amount as double,\n\t\textra as double,\n\t\tmta_tax as double,\n\t\ttip_amount as double,\n\t\ttolls_amount as double,\n\t\tehail_fee as double,\n\t\timprovement_surcharge as double,\n\t\ttotal_amount as double,\n\t\tpayment_type as integer,\n\t\ttrip_type as integer,\n\t\ttrip_year as string,\n\t\ttrip_month as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tpartitionBy('key',\n\t\t0,\n\t\ttrip_year,\n\t\ttrip_month\n\t)) ~> PersistPre2015\nSelect2015H22016H1 sink(input(\n\t\ttaxi_type as string,\n\t\tvendor_id as integer,\n\t\tpickup_datetime as timestamp,\n\t\tdropoff_datetime as timestamp,\n\t\tstore_and_fwd_flag as string,\n\t\trate_code_id as integer,\n\t\tpickup_location_id as string,\n\t\tdropoff_location_id as string,\n\t\tpickup_longitude as double,\n\t\tpickup_latitude as double,\n\t\tdropoff_longitude as double,\n\t\tdropoff_latitude as double,\n\t\tpassenger_count as integer,\n\t\ttrip_distance as double,\n\t\tfare_amount as double,\n\t\textra as double,\n\t\tmta_tax as double,\n\t\ttip_amount as double,\n\t\ttolls_amount as double,\n\t\tehail_fee as double,\n\t\timprovement_surcharge as double,\n\t\ttotal_amount as double,\n\t\tpayment_type as integer,\n\t\ttrip_type as integer,\n\t\ttrip_year as string,\n\t\ttrip_month as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tpartitionBy('key',\n\t\t0,\n\t\ttrip_year,\n\t\ttrip_month\n\t)) ~> Persist2015H22016H1\nSelect2016H2 sink(input(\n\t\ttaxi_type as string,\n\t\tvendor_id as integer,\n\t\tpickup_datetime as timestamp,\n\t\tdropoff_datetime as timestamp,\n\t\tstore_and_fwd_flag as string,\n\t\trate_code_id as integer,\n\t\tpickup_location_id as string,\n\t\tdropoff_location_id as string,\n\t\tpickup_longitude as double,\n\t\tpickup_latitude as double,\n\t\tdropoff_longitude as double,\n\t\tdropoff_latitude as double,\n\t\tpassenger_count as integer,\n\t\ttrip_distance as double,\n\t\tfare_amount as double,\n\t\textra as double,\n\t\tmta_tax as double,\n\t\ttip_amount as double,\n\t\ttolls_amount as double,\n\t\tehail_fee as double,\n\t\timprovement_surcharge as double,\n\t\ttotal_amount as double,\n\t\tpayment_type as integer,\n\t\ttrip_type as integer,\n\t\ttrip_year as string,\n\t\ttrip_month as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tpartitionBy('key',\n\t\t0,\n\t\ttrip_year,\n\t\ttrip_month\n\t)) ~> Persist2016H2\nSelectPost2017 sink(input(\n\t\ttaxi_type as string,\n\t\tvendor_id as integer,\n\t\tpickup_datetime as timestamp,\n\t\tdropoff_datetime as timestamp,\n\t\tstore_and_fwd_flag as string,\n\t\trate_code_id as integer,\n\t\tpickup_location_id as string,\n\t\tdropoff_location_id as string,\n\t\tpickup_longitude as double,\n\t\tpickup_latitude as double,\n\t\tdropoff_longitude as double,\n\t\tdropoff_latitude as double,\n\t\tpassenger_count as integer,\n\t\ttrip_distance as double,\n\t\tfare_amount as double,\n\t\textra as double,\n\t\tmta_tax as double,\n\t\ttip_amount as double,\n\t\ttolls_amount as double,\n\t\tehail_fee as double,\n\t\timprovement_surcharge as double,\n\t\ttotal_amount as double,\n\t\tpayment_type as integer,\n\t\ttrip_type as integer,\n\t\ttrip_year as string,\n\t\ttrip_month as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tpartitionBy('key',\n\t\t0,\n\t\ttrip_year,\n\t\ttrip_month\n\t)) ~> PersistPost2017"
+        }
+    }
+}

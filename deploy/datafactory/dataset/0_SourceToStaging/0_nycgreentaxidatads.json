@@ -1,0 +1,41 @@
+{
+    "name": "0_nycgreentaxidatads",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "nyctaxiadlsls",
+            "type": "LinkedServiceReference"
+        },
+        "folder": {
+            "name": "0_SourceToStaging"
+        },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "fileName": "greentaxi_lookup.csv",
+                "folderPath": "nyctaxi-staging/reference-data",
+                "fileSystem": "nyctaxi"
+            },
+            "columnDelimiter": ",",
+            "escapeChar": "\\",
+            "firstRowAsHeader": true,
+            "quoteChar": "\""
+        },
+        "schema": [
+            {
+                "name": "Type",
+                "type": "String"
+            },
+            {
+                "name": "Year",
+                "type": "String"
+            },
+            {
+                "name": "Month",
+                "type": "String"
+            }
+        ]
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

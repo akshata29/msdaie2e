@@ -1,0 +1,17 @@
+{
+    "name": "nyctaxiadb",
+    "type": "Microsoft.DataFactory/factories/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "AzureDatabricks",
+        "typeProperties": {
+            "domain": "https://eastus.azuredatabricks.net",
+            "existingClusterId": "1124-203826-state594",
+            "encryptedCredential": ""
+        },
+        "connectVia": {
+            "referenceName": "msadieteir",
+            "type": "IntegrationRuntimeReference"
+        }
+    }
+}

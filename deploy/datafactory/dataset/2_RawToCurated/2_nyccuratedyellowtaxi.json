@@ -1,0 +1,229 @@
+{
+    "name": "2_nyccuratedyellowtaxi",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "nyctaxiadlsls",
+            "type": "LinkedServiceReference"
+        },
+        "folder": {
+            "name": "2_RawToCurated"
+        },
+        "annotations": [],
+        "type": "Parquet",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "folderPath": "nyctaxi-curated-df/transactions/yellow-taxi",
+                "fileSystem": "nyctaxi"
+            },
+            "compressionCodec": "snappy"
+        },
+        "schema": [
+            {
+                "name": "taxi_type",
+                "type": "UTF8"
+            },
+            {
+                "name": "vendor_id",
+                "type": "INT32"
+            },
+            {
+                "name": "pickup_datetime",
+                "type": "INT96"
+            },
+            {
+                "name": "dropoff_datetime",
+                "type": "INT96"
+            },
+            {
+                "name": "store_and_fwd_flag",
+                "type": "UTF8"
+            },
+            {
+                "name": "rate_code_id",
+                "type": "INT32"
+            },
+            {
+                "name": "pickup_location_id",
+                "type": "INT32"
+            },
+            {
+                "name": "dropoff_location_id",
+                "type": "INT32"
+            },
+            {
+                "name": "pickup_longitude",
+                "type": "UTF8"
+            },
+            {
+                "name": "pickup_latitude",
+                "type": "UTF8"
+            },
+            {
+                "name": "dropoff_longitude",
+                "type": "UTF8"
+            },
+            {
+                "name": "dropoff_latitude",
+                "type": "UTF8"
+            },
+            {
+                "name": "passenger_count",
+                "type": "INT32"
+            },
+            {
+                "name": "trip_distance",
+                "type": "DOUBLE"
+            },
+            {
+                "name": "fare_amount",
+                "type": "DOUBLE"
+            },
+            {
+                "name": "extra",
+                "type": "DOUBLE"
+            },
+            {
+                "name": "mta_tax",
+                "type": "DOUBLE"
+            },
+            {
+                "name": "tip_amount",
+                "type": "DOUBLE"
+            },
+            {
+                "name": "tolls_amount",
+                "type": "DOUBLE"
+            },
+            {
+                "name": "ehail_fee",
+                "type": "DOUBLE"
+            },
+            {
+                "name": "improvement_surcharge",
+                "type": "DOUBLE"
+            },
+            {
+                "name": "total_amount",
+                "type": "DOUBLE"
+            },
+            {
+                "name": "payment_type",
+                "type": "INT32"
+            },
+            {
+                "name": "trip_type",
+                "type": "INT32"
+            },
+            {
+                "name": "vendor_abbreviation",
+                "type": "UTF8"
+            },
+            {
+                "name": "vendor_description",
+                "type": "UTF8"
+            },
+            {
+                "name": "trip_type_description",
+                "type": "UTF8"
+            },
+            {
+                "name": "month_name_short",
+                "type": "UTF8"
+            },
+            {
+                "name": "month_name_full",
+                "type": "UTF8"
+            },
+            {
+                "name": "payment_type_description",
+                "type": "UTF8"
+            },
+            {
+                "name": "rate_code_description",
+                "type": "UTF8"
+            },
+            {
+                "name": "pickup_borough",
+                "type": "UTF8"
+            },
+            {
+                "name": "pickup_zone",
+                "type": "UTF8"
+            },
+            {
+                "name": "pickup_service_zone",
+                "type": "UTF8"
+            },
+            {
+                "name": "dropoff_borough",
+                "type": "UTF8"
+            },
+            {
+                "name": "dropoff_zone",
+                "type": "UTF8"
+            },
+            {
+                "name": "dropoff_service_zone",
+                "type": "UTF8"
+            },
+            {
+                "name": "pickup_year",
+                "type": "INT32"
+            },
+            {
+                "name": "pickup_month",
+                "type": "INT32"
+            },
+            {
+                "name": "pickup_day",
+                "type": "INT32"
+            },
+            {
+                "name": "pickup_hour",
+                "type": "INT32"
+            },
+            {
+                "name": "pickup_minute",
+                "type": "INT32"
+            },
+            {
+                "name": "pickup_second",
+                "type": "INT32"
+            },
+            {
+                "name": "dropoff_year",
+                "type": "INT32"
+            },
+            {
+                "name": "dropoff_month",
+                "type": "INT32"
+            },
+            {
+                "name": "dropoff_day",
+                "type": "INT32"
+            },
+            {
+                "name": "dropoff_hour",
+                "type": "INT32"
+            },
+            {
+                "name": "dropoff_minute",
+                "type": "INT32"
+            },
+            {
+                "name": "dropoff_second",
+                "type": "INT32"
+            },
+            {
+                "name": "trip_year",
+                "type": "UTF8"
+            },
+            {
+                "name": "trip_month",
+                "type": "UTF8"
+            }
+        ]
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

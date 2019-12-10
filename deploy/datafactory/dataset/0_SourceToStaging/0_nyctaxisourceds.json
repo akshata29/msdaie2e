@@ -1,0 +1,24 @@
+{
+    "name": "0_nyctaxisourceds",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "nycsourcels",
+            "type": "LinkedServiceReference"
+        },
+        "folder": {
+            "name": "0_SourceToStaging"
+        },
+        "annotations": [],
+        "type": "Binary",
+        "typeProperties": {
+            "location": {
+                "type": "HttpServerLocation",
+                "relativeUrl": {
+                    "value": "@{variables('nycTaxiRelativeUrl')}",
+                    "type": "Expression"
+                }
+            }
+        }
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

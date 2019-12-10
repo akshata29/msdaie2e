@@ -1,0 +1,37 @@
+{
+    "name": "2_nycrawvendor",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "nyctaxiadlsls",
+            "type": "LinkedServiceReference"
+        },
+        "folder": {
+            "name": "2_RawToCurated"
+        },
+        "annotations": [],
+        "type": "Parquet",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "folderPath": "nyctaxi-raw-df/reference/vendor",
+                "fileSystem": "nyctaxi"
+            },
+            "compressionCodec": "snappy"
+        },
+        "schema": [
+            {
+                "name": "vendor_id",
+                "type": "INT32"
+            },
+            {
+                "name": "abbreviation",
+                "type": "UTF8"
+            },
+            {
+                "name": "description",
+                "type": "UTF8"
+            }
+        ]
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

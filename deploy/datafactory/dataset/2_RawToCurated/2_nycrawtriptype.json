@@ -1,0 +1,33 @@
+{
+    "name": "2_nycrawtriptype",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "nyctaxiadlsls",
+            "type": "LinkedServiceReference"
+        },
+        "folder": {
+            "name": "2_RawToCurated"
+        },
+        "annotations": [],
+        "type": "Parquet",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "folderPath": "nyctaxi-raw-df/reference/trip-type",
+                "fileSystem": "nyctaxi"
+            },
+            "compressionCodec": "snappy"
+        },
+        "schema": [
+            {
+                "name": "trip_type",
+                "type": "INT32"
+            },
+            {
+                "name": "description",
+                "type": "UTF8"
+            }
+        ]
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

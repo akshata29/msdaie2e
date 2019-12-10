@@ -1,0 +1,186 @@
+{
+    "name": "1_YellowTaxiStagingToRaw",
+    "properties": {
+        "activities": [
+            {
+                "name": "LoadYellowTaxiFromStagingToRaw",
+                "type": "ExecuteDataFlow",
+                "dependsOn": [
+                    {
+                        "activity": "Cleanup Directories",
+                        "dependencyConditions": [
+                            "Succeeded",
+                            "Failed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataflow": {
+                        "referenceName": "1_nycstagingtorawyellowtaxidf",
+                        "type": "DataFlowReference"
+                    }
+                }
+            },
+            {
+                "name": "Delete committed Files",
+                "type": "Delete",
+                "dependsOn": [
+                    {
+                        "activity": "Delete started Files",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "1_nycrawyellowtaxi",
+                        "type": "DatasetReference"
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "wildcardFileName": "_committed*"
+                    }
+                }
+            },
+            {
+                "name": "Delete started Files",
+                "type": "Delete",
+                "dependsOn": [
+                    {
+                        "activity": "Delete success files",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "1_nycrawyellowtaxi",
+                        "type": "DatasetReference"
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "wildcardFileName": "_started*"
+                    }
+                }
+            },
+            {
+                "name": "Delete success files",
+                "type": "Delete",
+                "dependsOn": [
+                    {
+                        "activity": "LoadYellowTaxiFromStagingToRaw",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "1_nycrawyellowtaxi",
+                        "type": "DatasetReference"
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "wildcardFileName": "_SUCCESS*"
+                    }
+                }
+            },
+            {
+                "name": "Cleanup Directories",
+                "type": "Delete",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "1_nycrawyellowtaxi",
+                        "type": "DatasetReference"
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true
+                    }
+                }
+            },
+            {
+                "name": "Execute 2_YellowTaxi",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "Delete committed Files",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/Shared/msdaie2e/adf/1_LoadData/2_YellowTaxi"
+                },
+                "linkedServiceName": {
+                    "referenceName": "nyctaxiadb",
+                    "type": "LinkedServiceReference"
+                }
+            }
+        ],
+        "folder": {
+            "name": "1_StagingToRaw"
+        },
+        "annotations": []
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}

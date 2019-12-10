@@ -1,0 +1,103 @@
+{
+    "name": "1_nycstagingyellowtaxi20152016H1",
+    "properties": {
+        "description": "2015 and 2016 first half of the year",
+        "linkedServiceName": {
+            "referenceName": "nyctaxiadlsls",
+            "type": "LinkedServiceReference"
+        },
+        "folder": {
+            "name": "1_StagingToRaw"
+        },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "fileSystem": "nyctaxi"
+            },
+            "columnDelimiter": ",",
+            "escapeChar": "\\",
+            "firstRowAsHeader": true,
+            "quoteChar": "\""
+        },
+        "schema": [
+            {
+                "name": "VendorID",
+                "type": "String"
+            },
+            {
+                "name": "tpep_pickup_datetime",
+                "type": "Timestamp"
+            },
+            {
+                "name": "tpep_dropoff_datetime",
+                "type": "Timestamp"
+            },
+            {
+                "name": "passenger_count",
+                "type": "Int32"
+            },
+            {
+                "name": "trip_distance",
+                "type": "Double"
+            },
+            {
+                "name": "pickup_longitude",
+                "type": "Double"
+            },
+            {
+                "name": "pickup_latitude",
+                "type": "Double"
+            },
+            {
+                "name": "RateCodeID",
+                "type": "Int32"
+            },
+            {
+                "name": "store_and_fwd_flag",
+                "type": "String"
+            },
+            {
+                "name": "dropoff_longitude",
+                "type": "Double"
+            },
+            {
+                "name": "dropoff_latitude",
+                "type": "Double"
+            },
+            {
+                "name": "payment_type",
+                "type": "String"
+            },
+            {
+                "name": "fare_amount",
+                "type": "Double"
+            },
+            {
+                "name": "extra",
+                "type": "String"
+            },
+            {
+                "name": "mta_tax",
+                "type": "Double"
+            },
+            {
+                "name": "tip_amount",
+                "type": "Double"
+            },
+            {
+                "name": "tolls_amount",
+                "type": "Double"
+            },
+            {
+                "name": "improvement_surcharge",
+                "type": "Double"
+            },
+            {
+                "name": "total_amount",
+                "type": "Double"
+            }
+        ]
+    }
+}

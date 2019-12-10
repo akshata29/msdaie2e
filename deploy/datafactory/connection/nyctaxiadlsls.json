@@ -1,0 +1,15 @@
+{
+  "name": "nyctaxiadlsls",
+  "type": "Microsoft.DataFactory/factories/linkedservices",
+  "properties": {
+    "annotations": [],
+    "type": "AzureBlobFS",
+    "typeProperties": {
+      "url": "https://msdaietesa.dfs.core.windows.net",
+      "accountkey": {
+        "type": "SecureString",
+        "value": ""
+      }
+    }
+  }
+}

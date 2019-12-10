@@ -1,0 +1,110 @@
+{
+    "name": "1_nycstagingtorawreferencedf",
+    "properties": {
+        "folder": {
+            "name": "1_StagingToRaw"
+        },
+        "type": "MappingDataFlow",
+        "typeProperties": {
+            "sources": [
+                {
+                    "dataset": {
+                        "referenceName": "1_nycstagingpaymenttype",
+                        "type": "DatasetReference"
+                    },
+                    "name": "StagingPaymentType",
+                    "description": "Import data from staging in CSV format"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "1_nycstagingtaxizone",
+                        "type": "DatasetReference"
+                    },
+                    "name": "StagingTaxiZone",
+                    "description": "Import data from staging in CSV format"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "1_nycstagingtripmonth",
+                        "type": "DatasetReference"
+                    },
+                    "name": "StagingTripMonth"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "1_nycstagingtriptype",
+                        "type": "DatasetReference"
+                    },
+                    "name": "StagingTripType",
+                    "description": "Import data from staging in CSV format"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "1_nycstagingvendor",
+                        "type": "DatasetReference"
+                    },
+                    "name": "StagingVendor",
+                    "description": "Import data from staging in CSV format"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "1_nycstagingratecode",
+                        "type": "DatasetReference"
+                    },
+                    "name": "StagingRateCode"
+                }
+            ],
+            "sinks": [
+                {
+                    "dataset": {
+                        "referenceName": "2_nycrawpaymenttype",
+                        "type": "DatasetReference"
+                    },
+                    "name": "RawPaymentType",
+                    "description": "Export csv to parquet as single file (small data)"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "2_nycrawratecode",
+                        "type": "DatasetReference"
+                    },
+                    "name": "RawRateCode"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "2_nycrawtaxizone",
+                        "type": "DatasetReference"
+                    },
+                    "name": "RawTaxiZone",
+                    "description": "Export csv to parquet as single file (small data)"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "2_nycrawtripmonth",
+                        "type": "DatasetReference"
+                    },
+                    "name": "RawTripMonth",
+                    "description": "Export csv to parquet as single file (small data)"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "2_nycrawtriptype",
+                        "type": "DatasetReference"
+                    },
+                    "name": "RawTripType",
+                    "description": "Export csv to parquet as single file (small data)"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "2_nycrawvendor",
+                        "type": "DatasetReference"
+                    },
+                    "name": "RawVendor",
+                    "description": "Export csv to parquet as single file (small data)"
+                }
+            ],
+            "transformations": [],
+            "script": "\n\nsource(output(\n\t\tpayment_type as short,\n\t\tabbreviation as string,\n\t\tdescription as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false) ~> StagingPaymentType\nsource(output(\n\t\tLocationID as short,\n\t\tBorough as string,\n\t\tZone as string,\n\t\tservice_zone as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> StagingTaxiZone\nsource(output(\n\t\tTrip_Month as string,\n\t\tMonth_Name_Short as string,\n\t\tMonth_Name_Full as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> StagingTripMonth\nsource(output(\n\t\ttrip_type as string,\n\t\tdescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> StagingTripType\nsource(output(\n\t\tvendor_id as short,\n\t\tabbreviation as string,\n\t\tdescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> StagingVendor\nsource(output(\n\t\trate_code_id as short,\n\t\tdescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> StagingRateCode\nStagingPaymentType sink(input(\n\t\tpayment_type as integer,\n\t\tabbreviation as string,\n\t\tdescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet') ~> RawPaymentType\nStagingRateCode sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet') ~> RawRateCode\nStagingTaxiZone sink(input(\n\t\tlocation_id as string,\n\t\tborough as string,\n\t\tzone as string,\n\t\tservice_zone as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet') ~> RawTaxiZone\nStagingTripMonth sink(input(\n\t\ttrip_month as string,\n\t\tmonth_name_short as string,\n\t\tmonth_name_full as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet') ~> RawTripMonth\nStagingTripType sink(input(\n\t\ttrip_type as integer,\n\t\tdescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet') ~> RawTripType\nStagingVendor sink(input(\n\t\tvendor_id as integer,\n\t\tabbreviation as string,\n\t\tdescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet') ~> RawVendor"
+        }
+    }
+}
