@@ -17,6 +17,11 @@ param (
 	[string]$resourceGroupName = "default"
 )
 
+$executeAdf = $true
+$executeAdb = $false
+$executeAml = $true
+$executeStagingLoad = $false
+$deployAdf = $true
 #$location = "eastus"
 #$uniqueName = "msdaiete"
 if($uniqueName -eq "default")
@@ -579,15 +584,17 @@ Write-Host Databricks ClusterId $dbClusterId... -ForegroundColor Green
 #	-Region $location `
 #	-ClusterName $adbClusterName
 
-# Get Bearer Token for ADF Connection
-Write-Host Create Bearer Token - ADF related ... -ForegroundColor Green
-$adbToken = New-DatabricksBearerToken -LifetimeSeconds 31536000 -Comment "ADF Token"
-$adbTokenValue = $adbToken.token_value
-Write-Host ADB Bearer Token $adbTokenValue... -ForegroundColor Green
-#dapi07c5c5b865e6e6274152305c319df8fb
-$adbTokenId = $adbToken.token_info.token_id
-Write-Host ADB Bearer Id $adbTokenId... -ForegroundColor Green
-
+if ($executeAdf -eq $true)
+{
+	# Get Bearer Token for ADF Connection
+	Write-Host Create Bearer Token - ADF related ... -ForegroundColor Green
+	$adbToken = New-DatabricksBearerToken -LifetimeSeconds 31536000 -Comment "ADF Token"
+	$adbTokenValue = $adbToken.token_value
+	Write-Host ADB Bearer Token $adbTokenValue... -ForegroundColor Green
+	#dapi07c5c5b865e6e6274152305c319df8fb
+	$adbTokenId = $adbToken.token_info.token_id
+	Write-Host ADB Bearer Id $adbTokenId... -ForegroundColor Green
+}
 
 # Import the Databricks Notebooks & Folders
 $ImportPath = "/Shared/msdaie2e"
@@ -613,42 +620,45 @@ catch
 # Create Linked Service for Http
 $dfName = $prefix + "adf";
 
-Write-Host Create ADF v2 ... -ForegroundColor Green
+if ($deployAdf  -eq $true)
+{
+	Write-Host Create ADF v2 ... -ForegroundColor Green
 
-try {
-	Get-AzDataFactoryV2 `
-		-ResourceGroupName $resourceGroupName `
-		-Name $dfName
+	try {
+		Get-AzDataFactoryV2 `
+			-ResourceGroupName $resourceGroupName `
+			-Name $dfName
+	}
+	catch {
+		Set-AzDataFactoryV2 `
+			-ResourceGroupName $resourceGroupName `
+			-Location $location `
+			-Name $dfName
+	}
+
+	$msAdbRegion = "https://" + $location + ".azuredatabricks.net"
+	$deAdfTemplateFilePath = "$ScriptRoot\..\datafactory\detemplate\detemplate.json"
+	$deAdfParametersFilePath = "$ScriptRoot\..\datafactory\detemplate\deparameters.json"
+	$deAdfParametersTemplate = Get-Content $deAdfParametersFilePath | ConvertFrom-Json
+	$deAdfParameters = $deAdfParametersTemplate.parameters
+	$deAdfParameters.factoryName.value = $dfName
+	$deAdfParameters.msdaieteir.value =  "msdaieteir"
+	$deAdfParameters.nycTaxiAccountKey.value = $storageAccountKey
+	$deAdfParameters.nycTaxiadbToken.value = $adbTokenValue
+	$deAdfParameters.nycTaxiStorageUrl.value = $storageAccountV2Url
+	$deAdfParameters.adbClusterId.value = $dbClusterId
+	$deAdfParameters.msadbregion.value = $msAdbRegion
+	$deAdfParametersTemplate | ConvertTo-Json | Out-File $deAdfParametersFilePath
+
+	$deAdfParameters
+
+	Write-Host Deploying $dfName"..." -ForegroundColor Green
+	New-AzResourceGroupDeployment `
+			-ResourceGroupName $resourceGroupName `
+			-Name $dfName `
+			-TemplateFile $deAdfTemplateFilePath `
+			-TemplateParameterFile $deAdfParametersFilePath
 }
-catch {
-	Set-AzDataFactoryV2 `
-		-ResourceGroupName $resourceGroupName `
-		-Location $location `
-		-Name $dfName
-}
-
-$msAdbRegion = "https://" + $location + ".azuredatabricks.net"
-$deAdfTemplateFilePath = "$ScriptRoot\..\datafactory\detemplate\detemplate.json"
-$deAdfParametersFilePath = "$ScriptRoot\..\datafactory\detemplate\deparameters.json"
-$deAdfParametersTemplate = Get-Content $deAdfParametersFilePath | ConvertFrom-Json
-$deAdfParameters = $deAdfParametersTemplate.parameters
-$deAdfParameters.factoryName.value = $dfName
-$deAdfParameters.msdaieteir.value =  "msdaieteir"
-$deAdfParameters.nycTaxiAccountKey.value = $storageAccountKey
-$deAdfParameters.nycTaxiadbToken.value = $adbTokenValue
-$deAdfParameters.nycTaxiStorageUrl.value = $storageAccountV2Url
-$deAdfParameters.adbClusterId.value = $dbClusterId
-$deAdfParameters.msadbregion.value = $msAdbRegion
-$deAdfParametersTemplate | ConvertTo-Json | Out-File $deAdfParametersFilePath
-
-$deAdfParameters
-
-Write-Host Deploying $dfName"..." -ForegroundColor Green
-New-AzResourceGroupDeployment `
-		-ResourceGroupName $resourceGroupName `
-		-Name $dfName `
-		-TemplateFile $deAdfTemplateFilePath `
-		-TemplateParameterFile $deAdfParametersFilePath
 
 #----------------------------------------------------------------#
 #   Step 7 - Execute ADF Pipelines in sequence					 #
@@ -685,303 +695,406 @@ Write-Host Run $notebookPathStep0 Notebook ... -ForegroundColor Green
 
 Start-DatabricksJob -JobId $step0RunId
 
-# Run the Green Taxi Copy to Staging Pipeline
-$greenTaxiCopyToStaging = "0_GreenTaxiCopyToStaging"
+if ($executeAdf -eq $true)
+{
+	if ($executeStagingLoad  -eq $true)
+	{
+		# Run the Green Taxi Copy to Staging Pipeline
+		$greenTaxiCopyToStaging = "0_GreenTaxiCopyToStaging"
 
-Write-Host Run $greenTaxiCopyToStaging pipeline.  It takes about 20 minutes ... -ForegroundColor Green
+		Write-Host Run $greenTaxiCopyToStaging pipeline.  It takes about 20 minutes ... -ForegroundColor Green
 
-Invoke-AzDataFactoryV2Pipeline `
-  -DataFactoryName $dfName `
-  -ResourceGroupName $resourceGroupName `
-  -PipelineName $greenTaxiCopyToStaging 
+		$step0GtRunId = Invoke-AzDataFactoryV2Pipeline `
+		-DataFactoryName $dfName `
+		-ResourceGroupName $resourceGroupName `
+		-PipelineName $greenTaxiCopyToStaging 
 
-#Run the Yellow Taxi Copy to Staging Pipeline
-$yellowTaxiCopyToStaging = "0_YellowTaxiCopyToStaging"
+		#Run the Yellow Taxi Copy to Staging Pipeline
+		$yellowTaxiCopyToStaging = "0_YellowTaxiCopyToStaging"
 
-Write-Host Run $yellowTaxiCopyToStaging pipeline. It takes about an hour and 30 minutes ... -ForegroundColor Green
+		Write-Host Run $yellowTaxiCopyToStaging pipeline. It takes about an hour and 30 minutes ... -ForegroundColor Green
 
-$step0YtRunId = Invoke-AzDataFactoryV2Pipeline `
-  -DataFactoryName $dfName `
-  -ResourceGroupName $resourceGroupName `
-  -PipelineName $yellowTaxiCopyToStaging
+		$step0YtRunId = Invoke-AzDataFactoryV2Pipeline `
+		-DataFactoryName $dfName `
+		-ResourceGroupName $resourceGroupName `
+		-PipelineName $yellowTaxiCopyToStaging
 
-# Find the information on the Pipeline Run 
-# Green Taxi takes about 13 minutes to run and Yellow Taxi about an hour
-while ($True) {
-    $gtRun = Get-AzDataFactoryV2PipelineRun `
-        -ResourceGroupName $resourceGroupName `
-        -DataFactoryName $dfName `
-        -PipelineRunId $step0YtRunId
+		# Find the information on the Pipeline Run 
+		# Green Taxi takes about 13 minutes to run and Yellow Taxi about an hour
+		while ($True) {
+			$gtRun = Get-AzDataFactoryV2PipelineRun `
+				-ResourceGroupName $resourceGroupName `
+				-DataFactoryName $dfName `
+				-PipelineRunId $step0YtRunId
 
-    if ($gtRun) {
-        if ($gtRun.Status -ne 'InProgress') {
-            Write-Output ("Pipeline run finished. The status is: " +  $gtRun.Status)
-            $gtRun
-            break
-        }
-        Write-Output "Pipeline is running...status: InProgress"
-    }
+			if ($gtRun) {
+				if ($gtRun.Status -ne 'InProgress') {
+					Write-Output ("Pipeline run finished. The status is: " +  $gtRun.Status)
+					$gtRun
+					break
+				}
+				Write-Output "Pipeline is running...status: InProgress"
+			}
 
-    Start-Sleep -Seconds 10
+			Start-Sleep -Seconds 10
+		}
+		$ytStep0Run = Get-AzDataFactoryV2PipelineRun `
+		-ResourceGroupName $resourceGroupName `
+		-DataFactoryName $dfName `
+		-PipelineRunId $step0YtRunId
+
+		$gtStep0Run = Get-AzDataFactoryV2PipelineRun `
+		-ResourceGroupName $resourceGroupName `
+		-DataFactoryName $dfName `
+		-PipelineRunId $step0GtRunId
+	}
+	
+	# Step 1 - Copy the data from Staging to Raw ( CSV to Parquet )
+	# Run the Reference Data Load
+	$referenceDataStagingToRaw = "1_ReferenceStagingToRaw"
+
+	Write-Host Run $referenceDataStagingToRaw pipeline. It takes about 7 minutes ... -ForegroundColor Green
+
+	Invoke-AzDataFactoryV2Pipeline `
+	-DataFactoryName $dfName `
+	-ResourceGroupName $resourceGroupName `
+	-PipelineName $referenceDataStagingToRaw
+
+	if ( $gtStep0Run.Status -eq 'Succeeded' -or ($executeStagingLoad -eq $false))
+	{
+		# Run the Green Taxi Copy to Staging Pipeline
+		$greenTaxiStagingToRaw = "1_GreenTaxiStagingToRaw"
+
+		Write-Host Run $greenTaxiStagingToRaw pipeline. It takes about 20 Minutes ... -ForegroundColor Green
+
+		$step1GtRunId = Invoke-AzDataFactoryV2Pipeline `
+		-DataFactoryName $dfName `
+		-ResourceGroupName $resourceGroupName `
+		-PipelineName $greenTaxiStagingToRaw
+	}
+
+	if ( $ytStep0Run.Status -eq 'Succeeded' -or ($executeStagingLoad  -eq $false))
+	{
+		#Run the Yellow Taxi Copy to Staging Pipeline
+		$yellowTaxiStagingToRaw = "1_YellowTaxiStagingToRaw"
+
+		Write-Host Run $yellowTaxiStagingToRaw pipeline. It takes about 2 hour 30 minutes ... -ForegroundColor Green
+
+		$step1YtRunId = Invoke-AzDataFactoryV2Pipeline `
+		-DataFactoryName $dfName `
+		-ResourceGroupName $resourceGroupName `
+		-PipelineName $yellowTaxiStagingToRaw
+	}
+	# Find the information on the Pipeline Run 
+	# Reference data takes about 7 minutes to Run
+	# Green Taxi takes about 20 minutes to run and Yellow Taxi about an 2 hours 30 minutes
+	while ($True) {
+		$gtRun = Get-AzDataFactoryV2PipelineRun `
+			-ResourceGroupName $resourceGroupName `
+			-DataFactoryName $dfName `
+			-PipelineRunId $step1YtRunId
+
+		if ($gtRun) {
+			if ($gtRun.Status -ne 'InProgress') {
+				Write-Output ("Pipeline run finished. The status is: " +  $gtRun.Status)
+				$gtRun
+				break
+			}
+			Write-Output "Pipeline is running...status: InProgress"
+		}
+
+		Start-Sleep -Seconds 10
+	}
+
+	$gtStep1Run = Get-AzDataFactoryV2PipelineRun `
+	-ResourceGroupName $resourceGroupName `
+	-DataFactoryName $dfName `
+	-PipelineRunId $step1GtRunId
+
+	$ytStep1Run = Get-AzDataFactoryV2PipelineRun `
+	-ResourceGroupName $resourceGroupName `
+	-DataFactoryName $dfName `
+	-PipelineRunId $step1YtRunId
+
+	# Step 2 - Raw zone to Curated Zone
+	# Run the Green Taxi Raw to Curated Pipeline
+	if ( $gtStep1Run.Status -eq 'Succeeded')
+	{
+		$greenTaxiRawToCurated = "2_GreenTaxiRawToCurated"
+
+		Write-Host Run $greenTaxiRawToCurated pipeline. It takes about 50 minutes ... -ForegroundColor Green
+
+		$step2GtRunId = Invoke-AzDataFactoryV2Pipeline `
+		-DataFactoryName $dfName `
+		-ResourceGroupName $resourceGroupName `
+		-PipelineName $greenTaxiRawToCurated
+	}
+
+	if ( $ytStep1Run.Status -eq 'Succeeded')
+	{
+		#Run the Yellow Taxi Copy to Staging Pipeline
+		$yellowTaxiRawToCurated = "2_YellowTaxiRawToCurated"
+
+		Write-Host Run $yellowTaxiRawToCurated pipeline. It takes about 3 hours 10 minutes ... -ForegroundColor Green
+
+		$step2YtRunId = Invoke-AzDataFactoryV2Pipeline `
+		-DataFactoryName $dfName `
+		-ResourceGroupName $resourceGroupName `
+		-PipelineName $yellowTaxiRawToCurated
+	}
+
+	# Find the information on the Pipeline Run 
+	# Green Taxi takes about 50 minutes to run and Yellow Taxi about an 3 hours 10 minutes
+	while ($True) {
+		$gtRun = Get-AzDataFactoryV2PipelineRun `
+			-ResourceGroupName $resourceGroupName `
+			-DataFactoryName $dfName `
+			-PipelineRunId $step2YtRunId
+
+		if ($gtRun) {
+			if ($gtRun.Status -ne 'InProgress') {
+				Write-Output ("Pipeline run finished. The status is: " +  $gtRun.Status)
+				$gtRun
+				break
+			}
+			Write-Output "Pipeline is running...status: InProgress"
+		}
+
+		Start-Sleep -Seconds 10
+	}
+
+	$gtStep2Run = Get-AzDataFactoryV2PipelineRun `
+	-ResourceGroupName $resourceGroupName `
+	-DataFactoryName $dfName `
+	-PipelineRunId $step2GtRunId
+
+	$ytStep2Run = Get-AzDataFactoryV2PipelineRun `
+	-ResourceGroupName $resourceGroupName `
+	-DataFactoryName $dfName `
+	-PipelineRunId $step2YtRunId
+
+	if ( $ytStep2Run.Status -eq 'Succeeded' -and $gtStep2Run.Status -eq 'Succeeded')
+	{
+		#Step 3 - Curated to Consumption Zone
+		$nycTaxiCuratedToConsumption = "3_CuratedToConsumption"
+
+		Write-Host Run $nycTaxiCuratedToConsumption pipeline. It takes about an hour ... -ForegroundColor Green
+
+		Invoke-AzDataFactoryV2Pipeline `
+		-DataFactoryName $dfName `
+		-ResourceGroupName $resourceGroupName `
+		-PipelineName $nycTaxiCuratedToConsumption
+	}
 }
-
-# Step 1 - Copy the data from Staging to Raw ( CSV to Parquet )
-# Run the Reference Data Load
-$referenceDataStagingToRaw = "1_ReferenceStagingToRaw"
-
-Write-Host Run $referenceDataStagingToRaw pipeline. It takes about 7 minutes ... -ForegroundColor Green
-
-Invoke-AzDataFactoryV2Pipeline `
-  -DataFactoryName $dfName `
-  -ResourceGroupName $resourceGroupName `
-  -PipelineName $referenceDataStagingToRaw
-
-# Run the Green Taxi Copy to Staging Pipeline
-$greenTaxiStagingToRaw = "1_GreenTaxiStagingToRaw"
-
-Write-Host Run $greenTaxiStagingToRaw pipeline. It takes about 20 Minutes ... -ForegroundColor Green
-
-Invoke-AzDataFactoryV2Pipeline `
-  -DataFactoryName $dfName `
-  -ResourceGroupName $resourceGroupName `
-  -PipelineName $greenTaxiStagingToRaw
-
-#Run the Yellow Taxi Copy to Staging Pipeline
-$yellowTaxiStagingToRaw = "1_YellowTaxiStagingToRaw"
-
-Write-Host Run $yellowTaxiStagingToRaw pipeline. It takes about 2 hour 30 minutes ... -ForegroundColor Green
-
-$step1YtRunId = Invoke-AzDataFactoryV2Pipeline `
-  -DataFactoryName $dfName `
-  -ResourceGroupName $resourceGroupName `
-  -PipelineName $yellowTaxiStagingToRaw
-
-# Find the information on the Pipeline Run 
-# Reference data takes about 7 minutes to Run
-# Green Taxi takes about 20 minutes to run and Yellow Taxi about an 2 hours 30 minutes
-while ($True) {
-    $gtRun = Get-AzDataFactoryV2PipelineRun `
-        -ResourceGroupName $resourceGroupName `
-        -DataFactoryName $dfName `
-        -PipelineRunId $step1YtRunId
-
-    if ($gtRun) {
-        if ($gtRun.Status -ne 'InProgress') {
-            Write-Output ("Pipeline run finished. The status is: " +  $gtRun.Status)
-            $gtRun
-            break
-        }
-        Write-Output "Pipeline is running...status: InProgress"
-    }
-
-    Start-Sleep -Seconds 10
-}
-
-# Step 2 - Raw zone to Curated Zone
-# Run the Green Taxi Raw to Curated Pipeline
-$greenTaxiRawToCurated = "2_GreenTaxiRawToCurated"
-
-Write-Host Run $greenTaxiRawToCurated pipeline. It takes about 50 minutes ... -ForegroundColor Green
-
-Invoke-AzDataFactoryV2Pipeline `
-  -DataFactoryName $dfName `
-  -ResourceGroupName $resourceGroupName `
-  -PipelineName $greenTaxiRawToCurated
-
-#Run the Yellow Taxi Copy to Staging Pipeline
-$yellowTaxiRawToCurated = "2_YellowTaxiRawToCurated"
-
-Write-Host Run $yellowTaxiRawToCurated pipeline. It takes about 3 hours 10 minutes ... -ForegroundColor Green
-
-$step2YtRunId = Invoke-AzDataFactoryV2Pipeline `
-  -DataFactoryName $dfName `
-  -ResourceGroupName $resourceGroupName `
-  -PipelineName $yellowTaxiRawToCurated
-
-# Find the information on the Pipeline Run 
-# Green Taxi takes about 50 minutes to run and Yellow Taxi about an 3 hours 10 minutes
-while ($True) {
-    $gtRun = Get-AzDataFactoryV2PipelineRun `
-        -ResourceGroupName $resourceGroupName `
-        -DataFactoryName $dfName `
-        -PipelineRunId $step2YtRunId
-
-    if ($gtRun) {
-        if ($gtRun.Status -ne 'InProgress') {
-            Write-Output ("Pipeline run finished. The status is: " +  $gtRun.Status)
-            $gtRun
-            break
-        }
-        Write-Output "Pipeline is running...status: InProgress"
-    }
-
-    Start-Sleep -Seconds 10
-}
-
-#Step 3 - Curated to Consumption Zone
-$nycTaxiCuratedToConsumption = "3_CuratedToConsumption"
-
-Write-Host Run $nycTaxiCuratedToConsumption pipeline. It takes about an hour ... -ForegroundColor Green
-
-Invoke-AzDataFactoryV2Pipeline `
-  -DataFactoryName $dfName `
-  -ResourceGroupName $resourceGroupName `
-  -PipelineName $nycTaxiCuratedToConsumption
 
 #----------------------------------------------------------------#
 #   Step 8 - Run Databricks Notebooks							 #
 #----------------------------------------------------------------#
 # Run the Databricks Notebooks
 
-# Connect to Databricks
-Connect-Databricks `
-	-Region $location `
-	-ApplicationId $spnAppId `
-	-Secret $spnSecret `
-	-ResourceGroupName $resourceGroupName `
-	-SubscriptionId $subscriptionId `
-	-WorkspaceName $adbWsName `
-	-TenantId $spnTenantId
+if ($executeAdb -eq $true)
+{
+	# Connect to Databricks
+	Connect-Databricks `
+		-Region $location `
+		-ApplicationId $spnAppId `
+		-Secret $spnSecret `
+		-ResourceGroupName $resourceGroupName `
+		-SubscriptionId $subscriptionId `
+		-WorkspaceName $adbWsName `
+		-TenantId $spnTenantId
 
-$notebookPathReferenceData = "/Shared/msdaie2e/adb/1_LoadData/0_ReferenceData"
-# Execute Reference Data Load Notebook
-$referenceDataRunId = Add-DatabricksNotebookJob `
-			-JobName "loadrefdata" `
-			-Timeout $jobTimeOut `
-			-MaxRetries $maxRetries `
-			-NotebookPath $notebookPathReferenceData `
-			-ClusterId $dbClusterId 
+	$notebookPathReferenceData = "/Shared/msdaie2e/adb/1_LoadData/0_ReferenceData"
+	# Execute Reference Data Load Notebook
+	$referenceDataRunId = Add-DatabricksNotebookJob `
+				-JobName "loadrefdata" `
+				-Timeout $jobTimeOut `
+				-MaxRetries $maxRetries `
+				-NotebookPath $notebookPathReferenceData `
+				-ClusterId $dbClusterId 
 
-Write-Host Run $notebookPathReferenceData Notebook ... -ForegroundColor Green
+	Write-Host Run $notebookPathReferenceData Notebook . It takes about 10 minutes... -ForegroundColor Green
 
-Start-DatabricksJob -JobId $referenceDataRunId
+	Start-DatabricksJob -JobId $referenceDataRunId
 
-$jobTimeOut = 20000
+	$jobTimeOut = 20000
 
-# Connect to Databricks
-Connect-Databricks `
-	-Region $location `
-	-ApplicationId $spnAppId `
-	-Secret $spnSecret `
-	-ResourceGroupName $resourceGroupName `
-	-SubscriptionId $subscriptionId `
-	-WorkspaceName $adbWsName `
-	-TenantId $spnTenantId
+	# Connect to Databricks
+	Connect-Databricks `
+		-Region $location `
+		-ApplicationId $spnAppId `
+		-Secret $spnSecret `
+		-ResourceGroupName $resourceGroupName `
+		-SubscriptionId $subscriptionId `
+		-WorkspaceName $adbWsName `
+		-TenantId $spnTenantId
+		
+	$notebookPathGreenTaxiData = "/Shared/msdaie2e/adb/1_LoadData/1_GreenTaxi"
+	# Execute Green Taxi Notebook
+	# GreenTaxi takes about 30 minutes
+	$loadGreenTaxiRunId = Add-DatabricksNotebookJob `
+				-JobName "loadgreentaxi" `
+				-Timeout $jobTimeOut `
+				-MaxRetries $maxRetries `
+				-NotebookPath $notebookPathGreenTaxiData `
+				-ClusterId $dbClusterId 
+
+	Write-Host Run $notebookPathGreenTaxiData Notebook . It takes about 50 minutes... -ForegroundColor Green
+
+	Start-DatabricksJob -JobId $loadGreenTaxiRunId
+
+	# Connect to Databricks
+	Connect-Databricks `
+		-Region $location `
+		-ApplicationId $spnAppId `
+		-Secret $spnSecret `
+		-ResourceGroupName $resourceGroupName `
+		-SubscriptionId $subscriptionId `
+		-WorkspaceName $adbWsName `
+		-TenantId $spnTenantId
+
+	$notebookPathYellowTaxiData = "/Shared/msdaie2e/adb/1_LoadData/2_YellowTaxi"
+	# Execute Yellow Taxi Notebook
+	# YellowTaxi takes about 4.5 hours
+	$loadYellowTaxiRunId = Add-DatabricksNotebookJob `
+				-JobName "loadyellowtaxi" `
+				-Timeout $jobTimeOut `
+				-MaxRetries $maxRetries `
+				-NotebookPath $notebookPathYellowTaxiData `
+				-ClusterId $dbClusterId 
+
+	Write-Host Run $notebookPathYellowTaxiData Notebook . It takes about 4 hours 20 minutes... -ForegroundColor Green
+
+	Start-DatabricksJob -JobId $loadYellowTaxiRunId
+
+	Connect-Databricks `
+				-Region $location `
+				-ApplicationId $spnAppId `
+				-Secret $spnSecret `
+				-ResourceGroupName $resourceGroupName `
+				-SubscriptionId $subscriptionId `
+				-WorkspaceName $adbWsName `
+				-TenantId $spnTenantId
+
+	# Check the Run Status
+	while ($True) {
+
+		$loadYellowTaxiStatus = Get-DatabricksRun -RunId $loadYellowTaxiRunId -StateOnly
+
+		if ($loadYellowTaxiStatus) {
+			if ($loadYellowTaxiStatus -ne 'SUCCESS') {
+				Write-Output ("Pipeline run finished. The status is: " +  $loadYellowTaxiStatus)
+				$loadYellowTaxiStatus
+				break
+			}
+			Write-Output "Pipeline is running...status: InProgress"
+		}
+
+		Start-Sleep -Seconds 10
+	}
+
+	Connect-Databricks `
+		-Region $location `
+		-ApplicationId $spnAppId `
+		-Secret $spnSecret `
+		-ResourceGroupName $resourceGroupName `
+		-SubscriptionId $subscriptionId `
+		-WorkspaceName $adbWsName `
+		-TenantId $spnTenantId
+
+	$loadYellowTaxiStatus = Get-DatabricksRun -RunId $loadYellowTaxiRunId -StateOnly
+	$loadGreenTaxiStatus = Get-DatabricksRun -RunId $loadGreenTaxiRunId -StateOnly
+
+	$jobTimeOut = 20000
+	if ($loadGreenTaxiStatus -eq 'SUCCESS')
+	{
+		$notebookPathGreenTaxiTransformData = "/Shared/msdaie2e/adb/2_TransformData/1_GreenTaxi"
+		# Execute Green Taxi Transform Data Notebook
+		# GreenTaxi takes about 15 minutes
+		$loadGreenTaxiTransformRunId = Add-DatabricksNotebookJob `
+					-JobName "transformgreentaxi" `
+					-Timeout $jobTimeOut `
+					-MaxRetries $maxRetries `
+					-NotebookPath $notebookPathGreenTaxiTransformData `
+					-ClusterId $dbClusterId 
+
+		Write-Host Run $notebookPathGreenTaxiTransformData Notebook . It takses about 20 Minutes... -ForegroundColor Green
+
+		Start-DatabricksJob -JobId $loadGreenTaxiTransformRunId
+	}
+
+	if ($loadGreenTaxiStatus -eq 'SUCCESS')
+	{
+		$notebookPathYellowTaxiTransformData = "/Shared/msdaie2e/adb/2_TransformData/2_YellowTaxi"
+		# Execute Yellow Taxi Transform Data Notebook
+		# Yellow Taxi takes about 15 minutes
+		$loadYellowTaxiTransformRunId = Add-DatabricksNotebookJob `
+					-JobName "transformyellowtaxi" `
+					-Timeout $jobTimeOut `
+					-MaxRetries $maxRetries `
+					-NotebookPath $notebookPathYellowTaxiTransformData `
+					-ClusterId $dbClusterId 
+
+		Write-Host Run $notebookPathYellowTaxiTransformData Notebook ... -ForegroundColor Green
+
+		Start-DatabricksJob -JobId $loadYellowTaxiTransformRunId
+
+		Connect-Databricks `
+				-Region $location `
+				-ApplicationId $spnAppId `
+				-Secret $spnSecret `
+				-ResourceGroupName $resourceGroupName `
+				-SubscriptionId $subscriptionId `
+				-WorkspaceName $adbWsName `
+				-TenantId $spnTenantId
+
+		# Check the Run Status
+		while ($True) {
+			$transforYellowTaxiStatus = Get-DatabricksRun -RunId $loadYellowTaxiTransformRunId -StateOnly
+
+			if ($transforYellowTaxiStatus) {
+				if ($transforYellowTaxiStatus -ne 'SUCCESS') {
+					Write-Output ("Pipeline run finished. The status is: " +  $transforYellowTaxiStatus)
+					$transforYellowTaxiStatus
+					break
+				}
+				Write-Output "Pipeline is running...status: InProgress"
+			}
+
+			Start-Sleep -Seconds 10
+		}
+	}
 	
-$notebookPathGreenTaxiData = "/Shared/msdaie2e/adb/1_LoadData/1_GreenTaxi"
-# Execute Green Taxi Notebook
-# GreenTaxi takes about 30 minutes
-$loadGreenTaxiRunId = Add-DatabricksNotebookJob `
-			-JobName "loadgreentaxi" `
-			-Timeout $jobTimeOut `
-			-MaxRetries $maxRetries `
-			-NotebookPath $notebookPathGreenTaxiData `
-			-ClusterId $dbClusterId 
+	Connect-Databricks `
+		-Region $location `
+		-ApplicationId $spnAppId `
+		-Secret $spnSecret `
+		-ResourceGroupName $resourceGroupName `
+		-SubscriptionId $subscriptionId `
+		-WorkspaceName $adbWsName `
+		-TenantId $spnTenantId
 
-Write-Host Run $notebookPathGreenTaxiData Notebook ... -ForegroundColor Green
+	$loadYellowTaxiTransformStatus = Get-DatabricksRun -RunId $loadYellowTaxiTransformRunId -StateOnly
+	$loadGreenTaxiTransformStatus = Get-DatabricksRun -RunId $loadGreenTaxiTransformRunId -StateOnly
+	
+	if ($loadYellowTaxiTransformStatus -eq 'SUCCESS' -and $loadGreenTaxiTransformStatus -eq 'SUCCESS')
+	{
+		$notebookPathConsumption = "/Shared/msdaie2e/adb/3_Consumption/1_MaterializedView"
+		# Execute Consumption Data Notebook
+		# Consumption takes about 4 Hours
+		$consumptionRunId = Add-DatabricksNotebookJob `
+					-JobName "consumption" `
+					-Timeout $jobTimeOut `
+					-MaxRetries $maxRetries `
+					-NotebookPath $notebookPathConsumption `
+					-ClusterId $dbClusterId 
 
-Start-DatabricksJob -JobId $loadGreenTaxiRunId
+		Write-Host Run $notebookPathConsumption Notebook ... -ForegroundColor Green
 
-# Connect to Databricks
-Connect-Databricks `
-	-Region $location `
-	-ApplicationId $spnAppId `
-	-Secret $spnSecret `
-	-ResourceGroupName $resourceGroupName `
-	-SubscriptionId $subscriptionId `
-	-WorkspaceName $adbWsName `
-	-TenantId $spnTenantId
-
-$notebookPathYellowTaxiData = "/Shared/msdaie2e/adb/1_LoadData/2_YellowTaxi"
-# Execute Yellow Taxi Notebook
-# YellowTaxi takes about 4.5 hours
-$loadYellowTaxiRunId = Add-DatabricksNotebookJob `
-			-JobName "loadyellowtaxi" `
-			-Timeout $jobTimeOut `
-			-MaxRetries $maxRetries `
-			-NotebookPath $notebookPathYellowTaxiData `
-			-ClusterId $dbClusterId 
-
-Write-Host Run $notebookPathYellowTaxiData Notebook ... -ForegroundColor Green
-
-Start-DatabricksJob -JobId $loadYellowTaxiRunId
-
-# Check the Run Status
-while ($True) {
-    $loadYellowTaxiStatus = Get-DatabricksRun -RunId $loadYellowTaxiRunId -StateOnly
-
-    if ($loadYellowTaxiStatus) {
-        if ($loadYellowTaxiStatus -ne 'SUCCESS') {
-            Write-Output ("Pipeline run finished. The status is: " +  $loadYellowTaxiStatus)
-            $loadYellowTaxiStatus
-            break
-        }
-        Write-Output "Pipeline is running...status: InProgress"
-    }
-
-    Start-Sleep -Seconds 10
+		Start-DatabricksJob -JobId $consumptionRunId
+		Start-Sleep -s 30
+	}
 }
-
-$jobTimeOut = 20000
-
-$notebookPathGreenTaxiTransformData = "/Shared/msdaie2e/adb/2_TransformData/1_GreenTaxi"
-# Execute Green Taxi Transform Data Notebook
-# GreenTaxi takes about 15 minutes
-$loadGreenTaxiTransformRunId = Add-DatabricksNotebookJob `
-			-JobName "transformgreentaxi" `
-			-Timeout $jobTimeOut `
-			-MaxRetries $maxRetries `
-			-NotebookPath $notebookPathGreenTaxiTransformData `
-			-ClusterId $dbClusterId 
-
-Write-Host Run $notebookPathGreenTaxiTransformData Notebook ... -ForegroundColor Green
-
-Start-DatabricksJob -JobId $loadGreenTaxiTransformRunId
-
-$notebookPathYellowTaxiTransformData = "/Shared/msdaie2e/adb/2_TransformData/2_YellowTaxi"
-# Execute Yellow Taxi Transform Data Notebook
-# Yellow Taxi takes about 15 minutes
-$loadYellowTaxiTransformRunId = Add-DatabricksNotebookJob `
-			-JobName "transformyellowtaxi" `
-			-Timeout $jobTimeOut `
-			-MaxRetries $maxRetries `
-			-NotebookPath $notebookPathYellowTaxiTransformData `
-			-ClusterId $dbClusterId 
-
-Write-Host Run $notebookPathYellowTaxiTransformData Notebook ... -ForegroundColor Green
-
-Start-DatabricksJob -JobId $loadYellowTaxiTransformRunId
-
-# Check the Run Status
-while ($True) {
-    $transforYellowTaxiStatus = Get-DatabricksRun -RunId $loadYellowTaxiTransformRunId -StateOnly
-
-    if ($transforYellowTaxiStatus) {
-        if ($transforYellowTaxiStatus -ne 'SUCCESS') {
-            Write-Output ("Pipeline run finished. The status is: " +  $transforYellowTaxiStatus)
-            $transforYellowTaxiStatus
-            break
-        }
-        Write-Output "Pipeline is running...status: InProgress"
-    }
-
-    Start-Sleep -Seconds 10
-}
-
-$notebookPathConsumption = "/Shared/msdaie2e/adb/3_Consumption/1_MaterializedView"
-# Execute Consumption Data Notebook
-# Consumption takes about 4 Hours
-$consumptionRunId = Add-DatabricksNotebookJob `
-			-JobName "consumption" `
-			-Timeout $jobTimeOut `
-			-MaxRetries $maxRetries `
-			-NotebookPath $notebookPathConsumption `
-			-ClusterId $dbClusterId 
-
-Write-Host Run $notebookPathConsumption Notebook ... -ForegroundColor Green
-
-Start-DatabricksJob -JobId $consumptionRunId
-Start-Sleep -s 30
 
 #----------------------------------------------------------------#
 #   Step 9 - Create Azure Machine Learning Services				 #
@@ -1054,39 +1167,41 @@ $amlStep0RunId = Add-DatabricksNotebookJob `
 
 Start-DatabricksJob -JobId $amlStep0RunId
 
-# Execute Feature Engineering notebook
-$jobTimeOut = 20000
+if ($executeAml -eq $true)
+{
+	# Execute Feature Engineering notebook
+	$jobTimeOut = 20000
 
-$notebookPathFeatureEngg = "/Shared/msdaie2e/adb/4_DataScience/1_FeatureEngg"
-$FeatureEnggRunId = Add-DatabricksNotebookJob `
-			-JobName "featureengg" `
-			-Timeout $jobTimeOut `
-			-MaxRetries $maxRetries `
-			-NotebookPath $notebookPathFeatureEngg `
-			-ClusterId $dbClusterId 
+	$notebookPathFeatureEngg = "/Shared/msdaie2e/adb/4_DataScience/1_FeatureEngg"
+	$FeatureEnggRunId = Add-DatabricksNotebookJob `
+				-JobName "featureengg" `
+				-Timeout $jobTimeOut `
+				-MaxRetries $maxRetries `
+				-NotebookPath $notebookPathFeatureEngg `
+				-ClusterId $dbClusterId 
 
-Start-DatabricksJob -JobId $FeatureEnggRunId
+	Start-DatabricksJob -JobId $FeatureEnggRunId
 
-$jobTimeOut = 20000
+	$jobTimeOut = 20000
 
-$notebookPathModelTraining = "/Shared/msdaie2e/adb/4_DataScience/2_ModelTraining"
-$notebookParamModelTraining = '{"subscriptionId": "' + $subscriptionId + '"' `
-				+ ', "rgName": "' + $resourceGroupName + '"' `
-				+ ', "wsName": "' + $amlWsName + '"' `
-				+ ', "tenantId": "' + $spnTenantId + '"' `
-				+ ', "clientId": "' + $spnAppId + '"' `
-				+ ', "clientSecret": "' + $spnSecret + '"' `
-				+ '}'
+	$notebookPathModelTraining = "/Shared/msdaie2e/adb/4_DataScience/2_ModelTraining"
+	$notebookParamModelTraining = '{"subscriptionId": "' + $subscriptionId + '"' `
+					+ ', "rgName": "' + $resourceGroupName + '"' `
+					+ ', "wsName": "' + $amlWsName + '"' `
+					+ ', "tenantId": "' + $spnTenantId + '"' `
+					+ ', "clientId": "' + $spnAppId + '"' `
+					+ ', "clientSecret": "' + $spnSecret + '"' `
+					+ '}'
 
-# Execute 0-AmlSetup Notebook
-$amlmodelTrainRunId = Add-DatabricksNotebookJob `
-			-JobName "modeltraining" `
-			-Timeout $jobTimeOut `
-			-MaxRetries $maxRetries `
-			-NotebookPath $notebookPathModelTraining `
-			-NotebookParametersJson $notebookParamModelTraining `
-			-ClusterId $dbClusterId 
+	# Execute 0-AmlSetup Notebook
+	$amlmodelTrainRunId = Add-DatabricksNotebookJob `
+				-JobName "modeltraining" `
+				-Timeout $jobTimeOut `
+				-MaxRetries $maxRetries `
+				-NotebookPath $notebookPathModelTraining `
+				-NotebookParametersJson $notebookParamModelTraining `
+				-ClusterId $dbClusterId 
 
-Start-DatabricksJob -JobId $amlmodelTrainRunId
-
+	Start-DatabricksJob -JobId $amlmodelTrainRunId
+}
 Write-Host Deployment complete. -ForegroundColor Green `n

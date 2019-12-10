@@ -449,7 +449,11 @@
                                     "PersistPost2017": {}
                                 }
                             },
-                            "staging": {}
+                            "staging": {},
+                            "integrationRuntime": {
+                                "referenceName": "msdaieteir",
+                                "type": "IntegrationRuntimeReference"
+                            }
                         }
                     },
                     {
@@ -661,7 +665,11 @@
                                     "RawVendor": {}
                                 }
                             },
-                            "staging": {}
+                            "staging": {},
+                            "integrationRuntime": {
+                                "referenceName": "msdaieteir",
+                                "type": "IntegrationRuntimeReference"
+                            }
                         }
                     },
                     {
@@ -869,7 +877,11 @@
                                     "SinkToCuratedZone": {}
                                 }
                             },
-                            "staging": {}
+                            "staging": {},
+                            "integrationRuntime": {
+                                "referenceName": "msdaieteir",
+                                "type": "IntegrationRuntimeReference"
+                            }
                         }
                     },
                     {
@@ -1077,7 +1089,11 @@
                                     "PersistPost2017": {}
                                 }
                             },
-                            "staging": {}
+                            "staging": {},
+                            "integrationRuntime": {
+                                "referenceName": "msdaieteir",
+                                "type": "IntegrationRuntimeReference"
+                            }
                         }
                     },
                     {
