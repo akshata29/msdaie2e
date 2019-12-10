@@ -109,8 +109,46 @@
                         "location": "AutoResolve",
                         "dataFlowProperties": {
                             "computeType": "ComputeOptimized",
-                            "coreCount": 32,
+                            "coreCount": 16,
                             "timeToLive": 60
+                        }
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/', parameters('msdaieteir'), 'gt')]",
+            "type": "Microsoft.DataFactory/factories/integrationRuntimes",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "type": "Managed",
+                "typeProperties": {
+                    "computeProperties": {
+                        "location": "AutoResolve",
+                        "dataFlowProperties": {
+                            "computeType": "ComputeOptimized",
+                            "coreCount": 16,
+                            "timeToLive": 10
+                        }
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/', parameters('msdaieteir'), 'yt')]",
+            "type": "Microsoft.DataFactory/factories/integrationRuntimes",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "type": "Managed",
+                "typeProperties": {
+                    "computeProperties": {
+                        "location": "AutoResolve",
+                        "dataFlowProperties": {
+                            "computeType": "ComputeOptimized",
+                            "coreCount": 16,
+                            "timeToLive": 10
                         }
                     }
                 }
@@ -451,7 +489,7 @@
                             },
                             "staging": {},
                             "integrationRuntime": {
-                                "referenceName": "msdaieteir",
+                                "referenceName": "[concat(parameters('msdaieteir'), 'gt')]",
                                 "type": "IntegrationRuntimeReference"
                             }
                         }
@@ -667,7 +705,7 @@
                             },
                             "staging": {},
                             "integrationRuntime": {
-                                "referenceName": "msdaieteir",
+                                "referenceName": "[concat(parameters('msdaieteir'))]",
                                 "type": "IntegrationRuntimeReference"
                             }
                         }
@@ -879,7 +917,7 @@
                             },
                             "staging": {},
                             "integrationRuntime": {
-                                "referenceName": "msdaieteir",
+                                "referenceName": "[concat(parameters('msdaieteir'), 'gt')]",
                                 "type": "IntegrationRuntimeReference"
                             }
                         }
@@ -1091,7 +1129,7 @@
                             },
                             "staging": {},
                             "integrationRuntime": {
-                                "referenceName": "msdaieteir",
+                                "referenceName": "[concat(parameters('msdaieteir'), 'yt')]",
                                 "type": "IntegrationRuntimeReference"
                             }
                         }
@@ -1303,7 +1341,7 @@
                             },
                             "staging": {},
                             "integrationRuntime": {
-                                "referenceName": "msdaieteir",
+                                "referenceName": "[concat(parameters('msdaieteir'), 'yt')]",
                                 "type": "IntegrationRuntimeReference"
                             }
                         }
@@ -4953,7 +4991,7 @@
                             },
                             "staging": {},
                             "integrationRuntime": {
-                                "referenceName": "msdaieteir",
+                                "referenceName": "[parameters('msdaieteir')]",
                                 "type": "IntegrationRuntimeReference"
                             }
                         }

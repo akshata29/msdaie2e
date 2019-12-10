@@ -15,11 +15,11 @@ param (
     [string]$subscriptionId = "default",
     [string]$location = "default",
 	[string]$resourceGroupName = "default",
-	$executeAdf = $false,
-	$executeAdb = $true,
+	$executeAdf = $true,
+	$executeAdb = $false,
 	$executeAml = $false,
 	$executeStagingLoad = $false,
-	$deployAdf = $false
+	$deployAdf = $true
 )
 
 #$executeAdf = $false
@@ -973,30 +973,31 @@ if ($executeAdb -eq $true)
 
 	Start-DatabricksJob -JobId $loadYellowTaxiRunId
 
-	Connect-Databricks `
-				-Region $location `
-				-ApplicationId $spnAppId `
-				-Secret $spnSecret `
-				-ResourceGroupName $resourceGroupName `
-				-SubscriptionId $subscriptionId `
-				-WorkspaceName $adbWsName `
-				-TenantId $spnTenantId
-
 	# Check the Run Status
-	while ($True) {
+	while ($True) 
+	{
 
-		$loadYellowTaxiStatus = Get-DatabricksRun -RunId $loadYellowTaxiRunId -StateOnly
+		Connect-Databricks `
+			-Region $location `
+			-ApplicationId $spnAppId `
+			-Secret $spnSecret `
+			-ResourceGroupName $resourceGroupName `
+			-SubscriptionId $subscriptionId `
+			-WorkspaceName $adbWsName `
+			-TenantId $spnTenantId
+
+		$loadYellowTaxiStatus = Get-DatabricksRun -RunId $loadYellowTaxiRunId #-StateOnly
 
 		if ($loadYellowTaxiStatus) {
-			if ($loadYellowTaxiStatus -ne 'SUCCESS') {
+			if ($loadYellowTaxiStatus.state_life_cycle_state -eq 'TERMINATED' -and $loadYellowTaxiStatus.result_state -eq 'Succeeded')
+			{
 				Write-Output ("Pipeline run finished. The status is: " +  $loadYellowTaxiStatus)
 				$loadYellowTaxiStatus
 				break
 			}
-			Write-Output "Pipeline is running...status: InProgress"
+			Write-Output "Pipeline is running...status: " + $loadYellowTaxiStatus.state.life_cycle_state
+			Start-Sleep -Seconds 60
 		}
-
-		Start-Sleep -Seconds 10
 	}
 
 	Connect-Databricks `
@@ -1055,19 +1056,30 @@ if ($executeAdb -eq $true)
 				-TenantId $spnTenantId
 
 		# Check the Run Status
-		while ($True) {
-			$transforYellowTaxiStatus = Get-DatabricksRun -RunId $loadYellowTaxiTransformRunId -StateOnly
+		while ($True) 
+		{
+
+			Connect-Databricks `
+				-Region $location `
+				-ApplicationId $spnAppId `
+				-Secret $spnSecret `
+				-ResourceGroupName $resourceGroupName `
+				-SubscriptionId $subscriptionId `
+				-WorkspaceName $adbWsName `
+				-TenantId $spnTenantId
+				
+			$transforYellowTaxiStatus = Get-DatabricksRun -RunId $loadYellowTaxiTransformRunId #-StateOnly
 
 			if ($transforYellowTaxiStatus) {
-				if ($transforYellowTaxiStatus -ne 'SUCCESS') {
+				if ($transforYellowTaxiStatus.state_life_cycle_state -eq 'TERMINATED' -and $transforYellowTaxiStatus.result_state -eq 'Succeeded')
+				{
 					Write-Output ("Pipeline run finished. The status is: " +  $transforYellowTaxiStatus)
 					$transforYellowTaxiStatus
 					break
 				}
-				Write-Output "Pipeline is running...status: InProgress"
+				Write-Output "Pipeline is running...status: " + $transforYellowTaxiStatus.state.life_cycle_state
+				Start-Sleep -Seconds 60
 			}
-
-			Start-Sleep -Seconds 10
 		}
 	}
 	
