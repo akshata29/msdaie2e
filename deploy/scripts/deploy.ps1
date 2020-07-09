@@ -22,6 +22,7 @@ Param (
 	$executeAdb = $false,
 	$executeAml = $false,
 	$executeStagingLoad = $false,
+	$executeCopyStaging = $false,
 	$deployAdf = $false
 )
 
@@ -124,13 +125,14 @@ if ($ScriptRoot -eq "" -or $null -eq $ScriptRoot ) {
 #----------------------------------------------------------------#
 $ErrorActionPreference = "Stop"
 #Install-Module AzureRM.Sql -Force
-#Install-Module -Name azure.databricks.cicd.tools -MinimumVersion 2.0.39 -Force
+#Install-Module -Name azure.databricks.cicd.tools -MinimumVersion 2.1.2915 -Force
 #Install-Module -Name SqlServer -Force
 #Install-Module -Name Az.Resources -Force
+#Install-Module -Name Az -AllowClobber -Force
 
-Import-Module -Name azure.databricks.cicd.tools -MinimumVersion 2.0.39 -Force
+Import-Module -Name azure.databricks.cicd.tools -MinimumVersion 2.1.2915 -Force
 Import-Module -Name SqlServer -Force
-#Import-Module -Name Az.Resources -Force
+Import-Module -Name Az.Resources -Force
 
 # Sign In
 Write-Host Logging in... -ForegroundColor Green
@@ -523,7 +525,7 @@ $sConfig.Add("spark.hadoop.javax.jdo.option.ConnectionUserName", $sqlUserName)
 $sConfig.Add("spark.hadoop.javax.jdo.option.ConnectionPassword", $sqlPassword)
 
 $adbClusterName ="externalhive"
-$sparkVersion="6.1.x-scala2.11"
+$sparkVersion="7.0.x-scala2.12"
 $nodeType="Standard_D3_v2"
 $minWorkers=1
 $maxWorkers=4
@@ -593,8 +595,8 @@ Write-Host Databricks ClusterId $dbClusterId... -ForegroundColor Green
 #	-Region $location `
 #	-ClusterName $adbClusterName
 
-if ($executeAdf -eq $true)
-{
+#if ($executeAdf -eq $true)
+#{
 	# Get Bearer Token for ADF Connection
 	Write-Host Create Bearer Token - ADF related ... -ForegroundColor Green
 	$adbToken = New-DatabricksBearerToken -LifetimeSeconds 31536000 -Comment "ADF Token"
@@ -603,7 +605,7 @@ if ($executeAdf -eq $true)
 	#dapi07c5c5b865e6e6274152305c319df8fb
 	$adbTokenId = $adbToken.token_info.token_id
 	Write-Host ADB Bearer Id $adbTokenId... -ForegroundColor Green
-}
+#}
 
 # Import the Databricks Notebooks & Folders
 $ImportPath = "/Shared/msdaie2e"
@@ -657,6 +659,8 @@ if ($deployAdf  -eq $true)
 	$deAdfParameters.nycTaxiStorageUrl.value = $storageAccountV2Url
 	$deAdfParameters.adbClusterId.value = $dbClusterId
 	$deAdfParameters.msadbregion.value = $msAdbRegion
+	$deAdfParameters.nycTaxiSourceStorageUrl.value = 'https://msdataaisa.dfs.core.windows.net'
+	$deAdfParameters.nycTaxiSourceAccountKey.value = ""
 	$deAdfParametersTemplate | ConvertTo-Json | Out-File $deAdfParametersFilePath
 
 	$deAdfParameters
@@ -704,59 +708,97 @@ Write-Host Run $notebookPathStep0 Notebook.  It takes few minutes ... -Foregroun
 
 Start-DatabricksJob -JobId $step0RunId
 
+if ($executeCopyStaging  -eq $true)
+{
+	# Run the Green Taxi Copy to Staging Pipeline
+	$copySourceToStaging = "0_CopySourceToStaging"
+
+	Write-Host Run $copySourceToStaging pipeline.  It takes about 5 minutes ... -ForegroundColor Green
+
+	$parameters = @{
+		"SourceFileFolder" = "nyctaxi"
+		"DestinationFileFolder" = "nyctaxi"
+	}
+
+	$step0CopyRunId = Invoke-AzDataFactoryV2Pipeline `
+	-DataFactoryName $dfName `
+	-ResourceGroupName $resourceGroupName `
+	-PipelineName $copySourceToStaging `
+	-Parameter $parameters
+
+	while ($True) {
+		$copyRun = Get-AzDataFactoryV2PipelineRun `
+			-ResourceGroupName $resourceGroupName `
+			-DataFactoryName $dfName `
+			-PipelineRunId $step0CopyRunId
+
+		if ($copyRun) {
+			if ($copyRun.Status -ne 'InProgress') {
+				Write-Output ("Pipeline run finished. The status is: " +  $copyRun.Status)
+				$gtRun
+				break
+			}
+			Write-Output "Pipeline is running...status: InProgress"
+		}
+
+		Start-Sleep -Seconds 10
+	}
+}
+
+if ($executeStagingLoad  -eq $true)
+{
+	# Run the Green Taxi Copy to Staging Pipeline
+	$greenTaxiCopyToStaging = "0_GreenTaxiCopyToStaging"
+
+	Write-Host Run $greenTaxiCopyToStaging pipeline.  It takes about 20 minutes ... -ForegroundColor Green
+
+	$step0GtRunId = Invoke-AzDataFactoryV2Pipeline `
+	-DataFactoryName $dfName `
+	-ResourceGroupName $resourceGroupName `
+	-PipelineName $greenTaxiCopyToStaging 
+
+	#Run the Yellow Taxi Copy to Staging Pipeline
+	$yellowTaxiCopyToStaging = "0_YellowTaxiCopyToStaging"
+
+	Write-Host Run $yellowTaxiCopyToStaging pipeline. It takes about an hour and 30 minutes ... -ForegroundColor Green
+
+	$step0YtRunId = Invoke-AzDataFactoryV2Pipeline `
+	-DataFactoryName $dfName `
+	-ResourceGroupName $resourceGroupName `
+	-PipelineName $yellowTaxiCopyToStaging
+
+	# Find the information on the Pipeline Run 
+	# Green Taxi takes about 13 minutes to run and Yellow Taxi about an hour
+	while ($True) {
+		$gtRun = Get-AzDataFactoryV2PipelineRun `
+			-ResourceGroupName $resourceGroupName `
+			-DataFactoryName $dfName `
+			-PipelineRunId $step0YtRunId
+
+		if ($gtRun) {
+			if ($gtRun.Status -ne 'InProgress') {
+				Write-Output ("Pipeline run finished. The status is: " +  $gtRun.Status)
+				$gtRun
+				break
+			}
+			Write-Output "Pipeline is running...status: InProgress"
+		}
+
+		Start-Sleep -Seconds 10
+	}
+	$ytStep0Run = Get-AzDataFactoryV2PipelineRun `
+	-ResourceGroupName $resourceGroupName `
+	-DataFactoryName $dfName `
+	-PipelineRunId $step0YtRunId
+
+	$gtStep0Run = Get-AzDataFactoryV2PipelineRun `
+	-ResourceGroupName $resourceGroupName `
+	-DataFactoryName $dfName `
+	-PipelineRunId $step0GtRunId
+}
+
 if ($executeAdf -eq $true)
 {
-	if ($executeStagingLoad  -eq $true)
-	{
-		# Run the Green Taxi Copy to Staging Pipeline
-		$greenTaxiCopyToStaging = "0_GreenTaxiCopyToStaging"
-
-		Write-Host Run $greenTaxiCopyToStaging pipeline.  It takes about 20 minutes ... -ForegroundColor Green
-
-		$step0GtRunId = Invoke-AzDataFactoryV2Pipeline `
-		-DataFactoryName $dfName `
-		-ResourceGroupName $resourceGroupName `
-		-PipelineName $greenTaxiCopyToStaging 
-
-		#Run the Yellow Taxi Copy to Staging Pipeline
-		$yellowTaxiCopyToStaging = "0_YellowTaxiCopyToStaging"
-
-		Write-Host Run $yellowTaxiCopyToStaging pipeline. It takes about an hour and 30 minutes ... -ForegroundColor Green
-
-		$step0YtRunId = Invoke-AzDataFactoryV2Pipeline `
-		-DataFactoryName $dfName `
-		-ResourceGroupName $resourceGroupName `
-		-PipelineName $yellowTaxiCopyToStaging
-
-		# Find the information on the Pipeline Run 
-		# Green Taxi takes about 13 minutes to run and Yellow Taxi about an hour
-		while ($True) {
-			$gtRun = Get-AzDataFactoryV2PipelineRun `
-				-ResourceGroupName $resourceGroupName `
-				-DataFactoryName $dfName `
-				-PipelineRunId $step0YtRunId
-
-			if ($gtRun) {
-				if ($gtRun.Status -ne 'InProgress') {
-					Write-Output ("Pipeline run finished. The status is: " +  $gtRun.Status)
-					$gtRun
-					break
-				}
-				Write-Output "Pipeline is running...status: InProgress"
-			}
-
-			Start-Sleep -Seconds 10
-		}
-		$ytStep0Run = Get-AzDataFactoryV2PipelineRun `
-		-ResourceGroupName $resourceGroupName `
-		-DataFactoryName $dfName `
-		-PipelineRunId $step0YtRunId
-
-		$gtStep0Run = Get-AzDataFactoryV2PipelineRun `
-		-ResourceGroupName $resourceGroupName `
-		-DataFactoryName $dfName `
-		-PipelineRunId $step0GtRunId
-	}
 	
 	# Step 1 - Copy the data from Staging to Raw ( CSV to Parquet )
 	# Run the Reference Data Load
