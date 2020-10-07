@@ -430,11 +430,15 @@ $adlsScope = $adbScope + "/providers/Microsoft.Storage/storageAccounts/" + $stor
 Write-Host Get Role Assignment - $adlsScope ... -ForegroundColor Green
 $roleAssgn = Get-AzRoleAssignment -ServicePrincipalName $spnName -Scope $adlsScope
 
-if ( $null -eq $roleAssgn )
+try 
 {
 	New-AzRoleAssignment -ApplicationId $spnAppId `
-    -RoleDefinitionName "Storage Blob Data Contributor" `
+	-RoleDefinitionName "Storage Blob Data Contributor" `
 	-Scope  $adlsScope
+}
+catch
+{
+Write-Host Permission already assigned 
 }
 
 #----------------------------------------------------------------#
@@ -550,8 +554,16 @@ if ( $null -eq $existingCluster )
 					-PythonVersion $pythonVersion `
 					-UniqueNames `
 					-Update
+					
+	Write-Host Databricks ClusterId new1  $clusterId.cluster_id... -ForegroundColor Green
+do {
+	Start-Sleep 30
+	$existingCluster = Get-DatabricksClusters
+	Write-Host Databricks new cluster  $existingCluster.cluster_id... -ForegroundColor Yellow
+	
+} while ($null -eq $existingCluster)
 
-	$dbClusterId = $clusterId.cluster_id
+	$dbClusterId = $existingCluster.cluster_id
 }
 else 
 {
