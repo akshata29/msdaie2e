@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "workspaceName": {
-      "value": "msdataaiaml"
+      "value": "astalatidaiaml"
     },
     "location": {
       "value": "eastus"
@@ -12,19 +12,19 @@
       "value": "enterprise"
     },
     "storageAccountName": {
-      "value": "msdataaiamlsa"
+      "value": "astalatidaiamlsa"
     },
     "keyVaultName": {
-      "value": "msdataaiamlkv"
+      "value": "astalatidaiamlkv"
     },
     "tenantId": {
-      "value": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+      "value": ""
     },
     "applicationInsightsName": {
-      "value": "msdataaiamlai"
+      "value": "astalatidaiamlai"
     },
     "containerRegistryName": {
-      "value": "msdataaiamlcr"
+      "value": "astalatidaiamlcr"
     }
   }
 }

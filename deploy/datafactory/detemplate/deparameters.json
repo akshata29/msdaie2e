@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "factoryName": {
-      "value": "msdataaiadf"
+      "value": "astalatidaiadf"
     },
     "msdaieteir": {
       "value": "msdaieteir"
@@ -12,16 +12,16 @@
       "value": "https://eastus.azuredatabricks.net"
     },
     "nycTaxiAccountKey": {
-      "value": "Zyj5tFPSzedNim1uz4X4var8ZDBrRSh1WEYinhoHMuDqwFSnRaw5yango+NbIGq2/yUoaK+YYxdV2dPJqiBvFg=="
+      "value": ""
     },
     "nycTaxiSourceAccountKey": {
-      "value": "Zyj5tFPSzedNim1uz4X4var8ZDBrRSh1WEYinhoHMuDqwFSnRaw5yango+NbIGq2/yUoaK+YYxdV2dPJqiBvFg=="
+      "value": ""
     },
     "nycTaxiadbToken": {
-      "value": "dapib18457200e5d29d304581a0bfc3aa00d"
+      "value": ""
     },
     "nycTaxiStorageUrl": {
-      "value": "https://msdataaisa.dfs.core.windows.net"
+      "value": "https://astalatidaisa.dfs.core.windows.net"
     },
     "nycTaxiSourceStorageUrl": {
       "value": "https://msdataaisa.dfs.core.windows.net"
@@ -30,7 +30,7 @@
       "value": "https://s3.amazonaws.com/nyc-tlc/trip+data/"
     },
     "adbClusterId": {
-      "value": "0707-163550-punt45"
+      "value": "1008-225024-flock5"
     }
   }
 }

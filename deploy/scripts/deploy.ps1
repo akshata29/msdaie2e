@@ -16,22 +16,31 @@ Param (
     [string]$subscriptionId = "default",
 	[Parameter(Mandatory=$true)]
     [string]$location = "default",
-	[Parameter(Mandatory=$true)]
+	[Parameter(Mandatory=$false)]
 	[string]$resourceGroupName = "default",
 	$executeAdf = $true,
 	$executeAdb = $false,
 	$executeAml = $false,
-	$executeStagingLoad = $false,
+	$executeStagingLoad = $true,
 	$executeCopyStaging = $false,
-	$deployAdf = $false
+	$deployAdf = $true
 )
 
-#$executeAdf = $false
-#$executeAdb = $true
-#$executeAml = $false
-#$executeStagingLoad = $false
-#$deployAdf = $false
+$fullorPartialDefault = '2'
+$fullorPartial = Read-Host "Do you want to load full or partial dataset (1. Full 2. Partial)? Press enter to accept the default [$($fullorPartialDefault)]"
+$fullorPartial = ($fullorPartialDefault,$fullorPartial)[[int]$fullorPartial]
+$fullLoad = $false
 
+if ($fullorPartial -eq 1 )
+{
+	$fullLoad = $true
+	Write-Host 'Deploy pipeline with Full Load'
+}
+else
+{
+	Write-Host 'Deploy pipeline with Partial Load'
+}
+	
 #$location = "eastus"
 #$uniqueName = "msdaiete"
 if($uniqueName -eq "default")
@@ -270,6 +279,28 @@ $referenceDataFilePath = "$ScriptRoot\..\referencedata\"
 $files = Get-ChildItem $referenceDataFilePath
 foreach($file in $files){
 	$filePath = $referenceDataFilePath + $file.Name
+	$blobFileName = 'nyctaxi-staging/reference-data/' + $file.Name
+	Write-Host Upload File $filePath to $blobFileName -ForegroundColor Green
+	Set-AzStorageBlobContent `
+		-File $filePath `
+		-Container $storageContainerNycTaxi `
+		-Blob  $blobFileName `
+		-Context $storageContext `
+		-Force
+}
+
+if ($fullLoad -eq $true)
+{
+	$lookupDataFilePath = "$ScriptRoot\..\lookupdata\"
+}
+else
+{
+	$lookupDataFilePath = "$ScriptRoot\..\partiallookupdata\"
+}
+
+$files = Get-ChildItem $lookupDataFilePath
+foreach($file in $files){
+	$filePath = $lookupDataFilePath + $file.Name
 	$blobFileName = 'nyctaxi-staging/reference-data/' + $file.Name
 	Write-Host Upload File $filePath to $blobFileName -ForegroundColor Green
 	Set-AzStorageBlobContent `

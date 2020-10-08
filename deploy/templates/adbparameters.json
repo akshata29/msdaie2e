@@ -3,19 +3,19 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "nsgName": {
-      "value": "msdataainsg"
+      "value": "astalatidainsg"
     },
     "vnetName": {
-      "value": "msdataaivnet"
+      "value": "astalatidaivnet"
     },
     "workspaceName": {
-      "value": "msdataaiadb"
+      "value": "astalatidaiadb"
     },
     "privateSubnetName": {
-      "value": "msdataaiprvnet"
+      "value": "astalatidaiprvnet"
     },
     "publicSubnetName": {
-      "value": "msdataaipbvnet"
+      "value": "astalatidaipbvnet"
     },
     "pricingTier": {
       "value": "premium"
