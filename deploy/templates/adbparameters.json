@@ -3,19 +3,19 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "nsgName": {
-      "value": "astalatidainsg"
+      "value": "nyctaxiastnsg"
     },
     "vnetName": {
-      "value": "astalatidaivnet"
+      "value": "nyctaxiastvnet"
     },
     "workspaceName": {
-      "value": "astalatidaiadb"
+      "value": "nyctaxiastadb"
     },
     "privateSubnetName": {
-      "value": "astalatidaiprvnet"
+      "value": "nyctaxiastprvnet"
     },
     "publicSubnetName": {
-      "value": "astalatidaipbvnet"
+      "value": "nyctaxiastpbvnet"
     },
     "pricingTier": {
       "value": "premium"

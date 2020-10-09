@@ -1077,7 +1077,7 @@ if ($executeAdb -eq $true)
 		$loadYellowTaxiStatus = Get-DatabricksRun -RunId $loadYellowTaxiRunId #-StateOnly
 
 		if ($loadYellowTaxiStatus) {
-			if ($loadYellowTaxiStatus.state.life_cycle_state -eq 'TERMINATED' -and $loadYellowTaxiStatus.state.result_state -eq 'Succeeded')
+			if ($loadYellowTaxiStatus.state.life_cycle_state -eq 'TERMINATED' -or $loadYellowTaxiStatus.state.result_state -eq 'Succeeded')
 			{
 				Write-Output ("Pipeline run finished. The status is: " +  $loadYellowTaxiStatus)
 				$loadYellowTaxiStatus
@@ -1118,7 +1118,7 @@ if ($executeAdb -eq $true)
 		Start-DatabricksJob -JobId $loadGreenTaxiTransformRunId
 	}
 
-	if ($loadGreenTaxiStatus -eq 'SUCCESS')
+	if ($loadYellowTaxiStatus -eq 'SUCCESS')
 	{
 		$notebookPathYellowTaxiTransformData = "/Shared/msdaie2e/adb/2_TransformData/2_YellowTaxi"
 		# Execute Yellow Taxi Transform Data Notebook
@@ -1159,7 +1159,7 @@ if ($executeAdb -eq $true)
 			$transformYellowTaxiStatus = Get-DatabricksRun -RunId $loadYellowTaxiTransformRunId #-StateOnly
 
 			if ($transformYellowTaxiStatus) {
-				if ($transformYellowTaxiStatus.state.life_cycle_state -eq 'TERMINATED' -and $transformYellowTaxiStatus.state.result_state -eq 'Succeeded')
+				if ($transformYellowTaxiStatus.state.life_cycle_state -eq 'TERMINATED' -or $transformYellowTaxiStatus.state.result_state -eq 'Succeeded')
 				{
 					Write-Output ("Pipeline run finished. The status is: " +  $transformYellowTaxiStatus)
 					$transformYellowTaxiStatus
