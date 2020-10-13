@@ -45,6 +45,17 @@ Dataset used in this solution is open public data so the demo can also
 be shared directly with the customers to be used as a learning sandbox
 or as a reference architecture to build on.
 
+Dataset
+=======
+
+For the purposes of the Demo we wanted to choose a Dataset that was publicly available. Further, the desired dataset needed to represent the scale as well as practical challenges such as disparate data sources, schema changes, skews and biases that customers would face in their own datasets. Microsoft has a great listing of public datasets here.
+
+NYC taxi trip data selected for the demo collected and curated by New York Taxi and Limousine commission (TLC). Taxi trip records include fields capturing pick-up and dropoff dates/times, pick-up and dropoff locations, trip distances, itemized fares, rate types, payment types, and driver-reported passenger counts. Data sets are in CSV files by month.
+
+<img src="./media/readme/image5.jpg" width="50%"/>
+
+In total the Green taxi has 76,513,115 trips (rows) and Yellow taxi has 1,571,671,152 trips (rows) with combined size of over 60 GBs in flat CSV files. More information about this data including the data dictionary for both Green and Yellow taxi trips can be found [here](https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page).
+
 Target Audience
 ===============
 
