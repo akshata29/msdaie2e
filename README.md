@@ -117,7 +117,9 @@ Technical Deep-dive
 ===================
 [Deepdive](Deepdive.md).
 
-# Contributor
+Contributor
+-----------
 - [Shekhar Kumar](https://github.com/shkumar64)
 
-# Special Thanks
+Special Thanks
+--------------
