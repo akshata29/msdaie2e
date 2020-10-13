@@ -12,13 +12,13 @@
       "value": "https://eastus.azuredatabricks.net"
     },
     "nycTaxiAccountKey": {
-      "value": "mREDxX6JQXlUmO5ZpspIOo1eHzX7XzaxbhxIxeG+5R7mMIGIoPuv81AIMMAIYz6PnS+E8BUybPKmsGWowgDWtQ=="
+      "value": ""
     },
     "nycTaxiSourceAccountKey": {
       "value": ""
     },
     "nycTaxiadbToken": {
-      "value": "dapi6b8f84e11ace45c3da1221ffb5d6fbad"
+      "value": ""
     },
     "nycTaxiStorageUrl": {
       "value": "https://nyctaxiastsa.dfs.core.windows.net"
@@ -30,7 +30,7 @@
       "value": "https://s3.amazonaws.com/nyc-tlc/trip+data/"
     },
     "adbClusterId": {
-      "value": "1009-130329-divvy203"
+      "value": ""
     }
   }
 }
