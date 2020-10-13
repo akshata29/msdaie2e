@@ -1,4 +1,5 @@
-**Abstract**
+Abstract
+========
 
 Data volumes are exploding—from traditional point-of-sale systems and
 e-commerce websites to new customer sentiment sources like Twitter and
@@ -16,10 +17,7 @@ components. Not only does this add delays to the sales cycle, but also,
 most time allows only a component or some features of it to be
 highlighted than bringing out the business value of end to end solution.
 
-<img src="./media/readme/image1.jpeg" style="width:0.89583in;height:0.89583in" alt="Image result for azure data factory" />
-<img src="./media/readme/image2.png" style="width:1.10677in;height:0.88542in" alt="Image result for azure data lake gen 2 icon" />
-<img src="./media/readme/image3.png" style="width:1.11458in;height:1.11458in" alt="Image result for azure databricks" />
-<img src="./media/readme/image4.png" style="width:1.33333in;height:0.7in" alt="Image result for azure machine learning icon" />
+<img src="./media/readme/image1.jpeg" width="10%" alt="Image result for azure data factory" /><img src="./media/readme/image2.png"  width="10%" alt="Image result for azure data lake gen 2 icon" /><img src="./media/readme/image3.png"  width="10%" alt="Image result for azure databricks" /><img src="./media/readme/image4.png"  width="15%" alt="Image result for azure machine learning icon" />
 
 Azure Data Factory Azure Data lake Gen2 Azure Databricks Azure Machine
 Learning
@@ -106,3 +104,20 @@ perspective analytics our solution should allow Machine learning to be
 applied to the entire data set. Further, the architecture for the
 solution should be scalable for future expansion and support devops like
 continuous ingestion and production.
+
+Architecture
+============
+[Architecture](Architecture.md).
+
+Deployment
+==========
+[Deployment](Deployment.md).
+
+Technical Deep-dive
+===================
+[Deepdive](Deepdive.md).
+
+# Contributor
+- [Shekhar Kumar](https://github.com/shkumar64)
+
+# Special Thanks
