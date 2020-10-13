@@ -234,34 +234,6 @@ Following 2 pipelines are used to ingest data into data lake:
 
         -   <img src="./media/deepdive/image19.png" style="width:5.46437in;height:2.70139in" />
 
-<table>
-<thead>
-<tr class="header">
-<th><h1 id="source"><strong>Source</strong></h1></th>
-<th><h1 id="destination"><strong>Destination</strong></h1></th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><h1 id="httpss3.amazonaws.comnyc-tlctripdatayellow_tripdata_2016-01.csv"><strong>https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2016-01.csv</strong></h1></td>
-<td><h1 id="httpsxxx.dfs.core.windows.netnyctaxinyctaxi-stagingtransactional-datatypeyellowyear2016month01yellow_tripdata_2016-01.csv"><strong>https://xxx.dfs.core.windows.net/nyctaxi/nyctaxi-staging/transactional-data/type=yellow/year=2016/month=01/yellow_tripdata_2016-01.csv</strong></h1></td>
-</tr>
-<tr class="even">
-<td><h1 id="httpss3.amazonaws.comnyc-tlctripdatagreen_tripdata_2016-01.csv"><strong>https://s3.amazonaws.com/nyc-tlc/trip+data/green_tripdata_2016-01.csv</strong></h1></td>
-<td><h1 id="https-xxx.dfs.core.windows.netnyctaxinyctaxi-stagingtransactional-datatypegreenyear2016month01green_tripdata_2016-01.csv"><strong>https:// xxx.dfs.core.windows.net/nyctaxi/nyctaxi-staging/transactional-data/type=green/year=2016/month=01/green_tripdata_2016-01.csv</strong></h1></td>
-</tr>
-<tr class="odd">
-<td><h1 id="httpss3.amazonaws.comnyc-tlctripdatayellow_tripdata_2016-02.csv"><strong>https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2016-02.csv</strong></h1></td>
-<td><h1 id="https-xxx.dfs.core.windows.netnyctaxinyctaxi-stagingtransactional-datatypeyellowyear2016month02green_tripdata_2016-02.csv"><strong>https:// xxx.dfs.core.windows.net/nyctaxi/nyctaxi-staging/transactional-data/type=yellow/year=2016/month=02/green_tripdata_2016-02.csv</strong></h1></td>
-</tr>
-<tr class="even">
-<td><p><strong>https://s3.amazonaws.com/nyc-tlc/trip+data/green_tripdata_2016-02.csv</strong></p>
-<h1 id="section"></h1></td>
-<td><h1 id="https-xxx.dfs.core.windows.netnyctaxinyctaxi-stagingtransactional-datatypegreenyear2016month02green_tripdata_2016-02.csv"><strong>https:// xxx.dfs.core.windows.net/nyctaxi/nyctaxi-staging/transactional-data/type=green/year=2016/month=02/green_tripdata_2016-02.csv</strong></h1></td>
-</tr>
-</tbody>
-</table>
-
 **Successful execution of the pipeline will create following data in
 datalake (staging zone)
 (nyctaxi-staging/transactional-data/type=**&lt;taxi-type&gt;**/year=**&lt;Year&gt;**/month=**&lt;Month&gt;**/\*csv)**
