@@ -1,0 +1,20 @@
+{
+	"name": "4_Query Source Data Views",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 1"
+		},
+		"content": {
+			"query": "USE logicaldw\nGo\n\n-- Now that the base views are in place to SELECT from the source CSV data, we can query these views to return useful aggregations.\nSELECT YEAR(SO.OrderDate) AS OrderDateYear,\n    COUNT(SO.OrderDate) AS TotalOrderCount\nFROM LDW.vwSalesOrders SO\nGROUP BY YEAR(SO.OrderDate);\n\nSELECT ISNULL(C.ColorName,'No Colour') AS ColourName,\n    SUM(SOL.Quantity) AS TotalOrderLineQuantity,\n    SUM(SOL.UnitPrice) AS TotalOrderLineUnitPrice\nFROM LDW.vwSalesOrdersLines SOL\nINNER JOIN LDW.vwStockItems SI ON SI.StockItemID = SOL.StockItemID\nLEFT JOIN LDW.vwColors C ON C.ColorID = SI.ColorID\nGROUP BY ISNULL(C.ColorName,'No Colour');\n\nSELECT\n    YEAR(SO.OrderDate) AS OrderDateYear,\n    SC.SupplierCategoryName,\n    SUM(SOL.Quantity) AS TotalOrderLineQuantity,\n    SUM(SOL.UnitPrice) AS TotalOrderLineUnitPrice\nFROM LDW.vwSalesOrdersLines SOL\nINNER JOIN LDW.vwSalesOrders SO ON SO.OrderID = SOL.OrderID\nINNER JOIN LDW.vwStockItems SI ON SI.StockItemID = SOL.StockItemID\nINNER JOIN LDW.vwSuppliers S ON SI.SupplierID = S.SupplierID\nINNER JOIN LDW.vwSupplierCategories SC ON SC.SupplierCategoryID = S.SupplierCategoryID\nGROUP BY YEAR(SO.OrderDate),\nSC.SupplierCategoryName;\n\n-- We can filter the data, however the following query will filter based on the OrderDate column but Serverless SQL will scan all the underlying folders and files.\nSELECT COUNT(SO.OrderID) AS TotalOrderCount\nFROM LDW.vwSalesOrders SO\nWHERE SO.OrderDate = '2017-02-16'\n\n-- We can manually create statistics on the OrderDate column to improve query performance.\nEXEC sys.sp_create_openrowset_statistics N'\n    SELECT OrderDate\n    FROM\n        OPENROWSET\n        (\n        BULK ''partitionedsalesorder/*/*.csv'',\n        DATA_SOURCE = ''ExternalRawDataLake'',\n        FORMAT = ''CSV'',\n        PARSER_VERSION = ''2.0'',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR =''|''\n        ) AS fct\n    '\n\n-- We can use the filepath() function to only scan the required folder in the data lake and therefore reduce the amount of data scanned.\nSELECT YEAR(SO.OrderDate) AS OrderDateYear,\n    COUNT(SO.OrderDate) AS TotalOrderCount\nFROM LDW.vwSalesOrders SO\nWHERE SO.FilePathDate = '2017-02-16'\nGROUP BY YEAR(SO.OrderDate)\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

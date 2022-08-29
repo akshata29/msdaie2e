@@ -1,0 +1,24 @@
+{
+	"name": "3_nycconsumption",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azcurateddatalakeash",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "3_CuratedToConsumption"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "nyctaxi-consumption-df/transactions/materialized-view",
+				"fileSystem": "nyctaxi"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

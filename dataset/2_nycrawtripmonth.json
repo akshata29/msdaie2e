@@ -1,0 +1,37 @@
+{
+	"name": "2_nycrawtripmonth",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azrawdatalakeash",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "2_RawToCurated/Raw/Reference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "nyctaxi-raw-df/reference/trip-month",
+				"fileSystem": "nyctaxi"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "trip_month",
+				"type": "UTF8"
+			},
+			{
+				"name": "month_name_short",
+				"type": "UTF8"
+			},
+			{
+				"name": "month_name_full",
+				"type": "UTF8"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

@@ -1,0 +1,139 @@
+{
+	"name": "0_YellowTaxiCopyToStaging",
+	"properties": {
+		"activities": [
+			{
+				"name": "nycyellotaxilookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "0_nycyellowtaxidatads",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "foreachdata",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "nycyellotaxilookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('nycyellotaxilookup').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "relativeUrl",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "nycTaxiRelativeUrl",
+								"value": {
+									"value": "@concat('yellow_tripdata_', item().Year, '-', item().Month, '.parquet')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Copy from Source",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "relativeUrl",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "HttpReadSettings",
+										"requestMethod": "GET"
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "0_nyctaxihttpsourceds",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "0_nyctaxirawdestinationds",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"nycTaxiRelativeUrl": {
+				"type": "String"
+			},
+			"nycTaxiType": {
+				"type": "String",
+				"defaultValue": "yellow"
+			}
+		},
+		"folder": {
+			"name": "NycTaxi/0_SourceToStaging"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-08-23T23:28:15Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

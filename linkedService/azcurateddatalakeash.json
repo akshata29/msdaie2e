@@ -1,0 +1,15 @@
+{
+	"name": "azcurateddatalakeash",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://azcurateddatalakeash.dfs.core.windows.net"
+		},
+		"connectVia": {
+			"referenceName": "azdataaiir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

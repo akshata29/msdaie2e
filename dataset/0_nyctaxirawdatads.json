@@ -1,0 +1,29 @@
+{
+	"name": "0_nyctaxirawdatads",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azrawnyctaxiash",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"container": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "0_SourceToStaging"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": {
+					"value": "@dataset().container",
+					"type": "Expression"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

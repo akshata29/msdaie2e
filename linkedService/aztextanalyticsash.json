@@ -1,0 +1,28 @@
+{
+	"name": "aztextanalyticsash",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "CognitiveService",
+		"typeProperties": {
+			"subscriptionId": "afa061ef-5d63-4e4f-99a7-b5027ec38eba",
+			"resourceGroup": "dataaie2e",
+			"csName": "aztextanalyticsash",
+			"csKind": "TextAnalytics",
+			"csLocation": "westus2",
+			"endPoint": "https://aztextanalyticsash.cognitiveservices.azure.com/",
+			"csKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "azkeyvaultash",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "aztextanalyticsash-Key"
+			}
+		},
+		"connectVia": {
+			"referenceName": "azdataaiir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

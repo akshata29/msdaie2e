@@ -1,0 +1,23 @@
+{
+	"name": "azcosmosdbash",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "CosmosDb",
+		"typeProperties": {
+			"connectionString": "AccountEndpoint=https://azcosmosdbash.documents.azure.com:443/;Database=OperationalDB",
+			"accountKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "azkeyvaultash",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "azcosmosdbash-Key"
+			}
+		},
+		"connectVia": {
+			"referenceName": "azdataaiir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

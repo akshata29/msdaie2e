@@ -1,0 +1,20 @@
+{
+	"name": "02 - Row-Level Security for dedicated SQL pools",
+	"properties": {
+		"folder": {
+			"name": "OpenDatasets/Dedicated SQL"
+		},
+		"content": {
+			"query": "--Create three user accounts that will demonstrate different access capabilities\nCREATE USER Manager WITHOUT LOGIN;\nCREATE USER Sales1 WITHOUT LOGIN;\nCREATE USER Sales2 WITHOUT LOGIN;\n\n--Create a table to hold data\nCREATE TABLE Sales\n    (\n    OrderID int,\n    SalesRep sysname,\n    Product varchar(10),\n    Qty int\n    );\n\n--Insert data into table with six rows of data, showing three orders for each sales representative\nINSERT INTO Sales VALUES (1, 'Sales1', 'Valve', 5);\nINSERT INTO Sales VALUES (2, 'Sales1', 'Wheel', 2);\nINSERT INTO Sales VALUES (3, 'Sales1', 'Valve', 4);\nINSERT INTO Sales VALUES (4, 'Sales2', 'Bracket', 2);\nINSERT INTO Sales VALUES (5, 'Sales2', 'Wheel', 5);\nINSERT INTO Sales VALUES (6, 'Sales2', 'Seat', 5);\n-- View the 6 rows in the table\nSELECT * FROM Sales;\n\n--Grant read access on the table to each of the users\nGRANT SELECT ON Sales TO Manager;\nGRANT SELECT ON Sales TO Sales1;\nGRANT SELECT ON Sales TO Sales2;\n\n\n--Create a new schema, and an inline table-valued function.\n--The function returns 1 when a row in the SalesRep column is the same as the user executing the query (@SalesRep = USER_NAME()) or if the user executing the query is the Manager user (USER_NAME() = 'Manager')\nEXEC('CREATE SCHEMA Security');\nGO\n\n  --Select the code for creating the function and run\nCREATE FUNCTION Security.fn_securitypredicate(@SalesRep AS sysname)\n    RETURNS TABLE\nWITH SCHEMABINDING\nAS\n    RETURN SELECT 1 AS fn_securitypredicate_result\nWHERE @SalesRep = USER_NAME() OR USER_NAME() = 'Manager'\nGO\n--Create a security policy adding the function as a filter predicate. The state must be set to ON to enable the policy.\nCREATE SECURITY POLICY SalesFilter\nADD FILTER PREDICATE Security.fn_securitypredicate(SalesRep)\nON dbo.Sales\nWITH (STATE = ON);\n\n--Allow SELECT permissions to the fn_securitypredicate function\nGRANT SELECT ON security.fn_securitypredicate TO Manager;\nGRANT SELECT ON security.fn_securitypredicate TO Sales1;\nGRANT SELECT ON security.fn_securitypredicate TO Sales2;\n\n--Test the filtering predicate, by selected from the Sales table as each user\nEXECUTE AS USER = 'Sales1';\nSELECT * FROM Sales;\nREVERT;\n\nEXECUTE AS USER = 'Sales2';\nSELECT * FROM Sales;\nREVERT;\n\nEXECUTE AS USER = 'Manager';\nSELECT * FROM Sales;\nREVERT;\n\n--Alter the security policy to disable the policy\nALTER SECURITY POLICY SalesFilter\nWITH (STATE = OFF);\n\n--Connect to the SQL database to clean up resources\nDROP USER Sales1;\nDROP USER Sales2;\nDROP USER Manager;\n\nDROP SECURITY POLICY SalesFilter;\nDROP TABLE Sales;\nDROP FUNCTION Security.fn_securitypredicate;\nDROP SCHEMA Security;\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

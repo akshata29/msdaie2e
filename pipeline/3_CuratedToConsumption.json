@@ -1,0 +1,165 @@
+{
+	"name": "3_CuratedToConsumption",
+	"properties": {
+		"activities": [
+			{
+				"name": "3_CuratedToConsumptiondf",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Cleanup Directories",
+						"dependencyConditions": [
+							"Succeeded",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "3_nyccuratedtoconsumptiondf",
+						"type": "DataFlowReference"
+					},
+					"integrationRuntime": {
+						"referenceName": "azdataaiir",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Cleanup Directories",
+				"type": "Delete",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "3_nycconsumption",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true
+					}
+				}
+			},
+			{
+				"name": "Delete committed Files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Delete success files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "3_nycconsumption",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "_committed*"
+					}
+				}
+			},
+			{
+				"name": "Delete started Files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "3_CuratedToConsumptiondf",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "3_nycconsumption",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "_started*"
+					}
+				}
+			},
+			{
+				"name": "Delete success files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Delete started Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "3_nycconsumption",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "_SUCCESS*"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "3_CuratedToConsumption"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-08-28T15:28:51Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

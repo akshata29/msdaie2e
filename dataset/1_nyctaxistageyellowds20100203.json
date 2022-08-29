@@ -1,0 +1,97 @@
+{
+	"name": "1_nyctaxistageyellowds20100203",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azrawdatalakeash",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "1_StagingToRaw/Staging/YellowTaxi"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "nyctaxi-staging/transactional-data/type=yellow/year=2010/month=02",
+				"fileSystem": "nyctaxi"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "vendor_id",
+				"type": "UTF8"
+			},
+			{
+				"name": "pickup_datetime",
+				"type": "UTF8"
+			},
+			{
+				"name": "dropoff_datetime",
+				"type": "UTF8"
+			},
+			{
+				"name": "passenger_count",
+				"type": "INT64"
+			},
+			{
+				"name": "trip_distance",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "pickup_longitude",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "pickup_latitude",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "rate_code",
+				"type": "UTF8"
+			},
+			{
+				"name": "store_and_fwd_flag",
+				"type": "UTF8"
+			},
+			{
+				"name": "dropoff_longitude",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "dropoff_latitude",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "payment_type",
+				"type": "UTF8"
+			},
+			{
+				"name": "fare_amount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "surcharge",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "mta_tax",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "tip_amount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "tolls_amount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "total_amount",
+				"type": "DOUBLE"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

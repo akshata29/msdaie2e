@@ -1,0 +1,24 @@
+{
+	"name": "0_nyctaxirawparquetds",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azrawnyctaxiash",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "0_SourceToStaging"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "nyctaxi-staging/transactional-data/type=green",
+				"fileSystem": "nyctaxi"
+			},
+			"compressionCodec": "none"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

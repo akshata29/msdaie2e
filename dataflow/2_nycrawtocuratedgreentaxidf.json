@@ -1,0 +1,112 @@
+{
+	"name": "2_nycrawtocuratedgreentaxidf",
+	"properties": {
+		"folder": {
+			"name": "NycTaxi/2_RawToCurated"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "2_nycrawgreentaxi",
+						"type": "DatasetReference"
+					},
+					"name": "RawGreenTaxi"
+				},
+				{
+					"dataset": {
+						"referenceName": "2_nycrawpaymenttype",
+						"type": "DatasetReference"
+					},
+					"name": "RawPaymentType"
+				},
+				{
+					"dataset": {
+						"referenceName": "2_nycrawratecode",
+						"type": "DatasetReference"
+					},
+					"name": "RawRateCode"
+				},
+				{
+					"dataset": {
+						"referenceName": "2_nycrawtaxizone",
+						"type": "DatasetReference"
+					},
+					"name": "RawTaxiZone"
+				},
+				{
+					"dataset": {
+						"referenceName": "2_nycrawvendor",
+						"type": "DatasetReference"
+					},
+					"name": "RawVendor"
+				},
+				{
+					"dataset": {
+						"referenceName": "2_nycrawtriptype",
+						"type": "DatasetReference"
+					},
+					"name": "RawTripType"
+				},
+				{
+					"dataset": {
+						"referenceName": "2_nycrawtripmonth",
+						"type": "DatasetReference"
+					},
+					"name": "RawTripMonth"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "azcurateddatalakeash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SinkToCuratedZone"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SelectGreenTaxiColumns",
+					"description": "Select deduped trips"
+				},
+				{
+					"name": "DerivedColumnsGreenTaxi",
+					"description": "Add derived columns + columns with literal values"
+				},
+				{
+					"name": "JoinWithPaymentType"
+				},
+				{
+					"name": "JoinWithRateZone"
+				},
+				{
+					"name": "JoinWithTaxiZoneForPickup"
+				},
+				{
+					"name": "ReorderAndRenamePickupZone"
+				},
+				{
+					"name": "JoinWithTaxiZoneForDropOff"
+				},
+				{
+					"name": "ReorderAndRenameDropoffZone"
+				},
+				{
+					"name": "JoinWithVendor"
+				},
+				{
+					"name": "FinalColumnList"
+				},
+				{
+					"name": "JoinWithTripType"
+				},
+				{
+					"name": "JoinWithTripMonth"
+				}
+			],
+			"script": "source(output(\n\t\tvendor_id as long,\n\t\tpickup_datetime as timestamp,\n\t\tdropoff_datetime as timestamp,\n\t\tstore_and_fwd_flag as string,\n\t\trate_code_id as double,\n\t\tpickup_location_id as long,\n\t\tdropoff_location_id as long,\n\t\tpassenger_count as double,\n\t\ttrip_distance as double,\n\t\tfare_amount as double,\n\t\textra as double,\n\t\tmta_tax as double,\n\t\ttip_amount as double,\n\t\ttolls_amount as double,\n\t\tehail_fee as integer,\n\t\timprovement_surcharge as double,\n\t\ttotal_amount as double,\n\t\tpayment_type as double,\n\t\ttrip_type as double,\n\t\tcongestion_surcharge as double,\n\t\ttaxi_type as string,\n\t\ttrip_year as integer,\n\t\ttrip_month as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\trowUrlColumn: 'dataset_file_nm',\n\tformat: 'parquet',\n\twildcardPaths:['nyctaxi-raw-df/transactions/green-taxi/*/*/*.parquet']) ~> RawGreenTaxi\nsource(output(\n\t\tpayment_type as short,\n\t\tabbreviation as string,\n\t\tdescription as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> RawPaymentType\nsource(output(\n\t\trate_code_id as short,\n\t\tdescription as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> RawRateCode\nsource(output(\n\t\tLocationID as string,\n\t\tBorough as string,\n\t\tZone as string,\n\t\tservice_zone as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> RawTaxiZone\nsource(output(\n\t\tvendor_id as short,\n\t\tabbreviation as string,\n\t\tdescription as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> RawVendor\nsource(output(\n\t\ttrip_type as integer,\n\t\tdescription as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> RawTripType\nsource(output(\n\t\ttrip_month as string,\n\t\tmonth_name_short as string,\n\t\tmonth_name_full as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> RawTripMonth\nRawGreenTaxi select(mapColumn(\n\t\tvendor_id,\n\t\tpickup_datetime,\n\t\tdropoff_datetime,\n\t\tstore_and_fwd_flag,\n\t\trate_code_id,\n\t\tpickup_location_id,\n\t\tdropoff_location_id,\n\t\tpassenger_count,\n\t\ttrip_distance,\n\t\tfare_amount,\n\t\textra,\n\t\tmta_tax,\n\t\ttip_amount,\n\t\ttolls_amount,\n\t\tehail_fee,\n\t\timprovement_surcharge,\n\t\ttotal_amount,\n\t\tpayment_type,\n\t\ttrip_type,\n\t\tcongestion_surcharge,\n\t\ttrip_year,\n\t\ttrip_month,\n\t\ttaxi_type,\n\t\tdataset_file_nm\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectGreenTaxiColumns\nSelectGreenTaxiColumns derive(pickup_year = year(pickup_datetime),\n\t\tpickup_month = month(pickup_datetime),\n\t\tpickup_day = dayOfWeek(pickup_datetime),\n\t\tpickup_hour = hour(pickup_datetime),\n\t\tpickup_minute = minute(pickup_datetime),\n\t\tpickup_second = second(pickup_datetime),\n\t\tdropoff_year = year(dropoff_datetime),\n\t\tdropoff_month = month(dropoff_datetime),\n\t\tdropoff_day = dayOfWeek(dropoff_datetime),\n\t\tdropoff_hour = hour(dropoff_datetime),\n\t\tdropoff_minute = minute(dropoff_datetime),\n\t\tdropoff_second = second(dropoff_datetime),\n\t\ttrip_year = toInteger(left(toString(pickup_datetime),4)),\n\t\ttrip_month = toInteger(substring(toString(pickup_datetime), 6, 2))) ~> DerivedColumnsGreenTaxi\nDerivedColumnsGreenTaxi, RawPaymentType join(SelectGreenTaxiColumns@payment_type == RawPaymentType@payment_type,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'right')~> JoinWithPaymentType\nJoinWithTripMonth, RawRateCode join(SelectGreenTaxiColumns@rate_code_id == RawRateCode@rate_code_id,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'right')~> JoinWithRateZone\nJoinWithRateZone, RawTaxiZone join(pickup_location_id == toInteger(LocationID),\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'right')~> JoinWithTaxiZoneForPickup\nJoinWithTaxiZoneForPickup select(mapColumn(\n\t\tvendor_id,\n\t\tpickup_datetime,\n\t\tdropoff_datetime,\n\t\tstore_and_fwd_flag,\n\t\trate_code_id = SelectGreenTaxiColumns@rate_code_id,\n\t\tpickup_location_id,\n\t\tdropoff_location_id,\n\t\tpassenger_count,\n\t\ttrip_distance,\n\t\tfare_amount,\n\t\textra,\n\t\tmta_tax,\n\t\ttip_amount,\n\t\ttolls_amount,\n\t\tehail_fee,\n\t\timprovement_surcharge,\n\t\ttotal_amount,\n\t\tpayment_type = SelectGreenTaxiColumns@payment_type,\n\t\ttrip_type = SelectGreenTaxiColumns@trip_type,\n\t\tcongestion_surcharge,\n\t\tdataset_file_nm,\n\t\ttrip_year,\n\t\ttrip_month = DerivedColumnsGreenTaxi@trip_month,\n\t\ttaxi_type,\n\t\tpickup_year,\n\t\tpickup_month,\n\t\tpickup_day,\n\t\tpickup_hour,\n\t\tpickup_minute,\n\t\tpickup_second,\n\t\tdropoff_year,\n\t\tdropoff_month,\n\t\tdropoff_day,\n\t\tdropoff_hour,\n\t\tdropoff_minute,\n\t\tdropoff_second,\n\t\tpayment_type_description = RawPaymentType@description,\n\t\trate_code_description = RawRateCode@description,\n\t\tpickup_borough = Borough,\n\t\tpickup_zone = Zone,\n\t\tpickup_service_zone = service_zone,\n\t\tmonth_name_short,\n\t\tmonth_name_full,\n\t\ttrip_type_description = RawTripType@description\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> ReorderAndRenamePickupZone\nReorderAndRenamePickupZone, RawTaxiZone join(dropoff_location_id == toInteger(LocationID),\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'right')~> JoinWithTaxiZoneForDropOff\nJoinWithTaxiZoneForDropOff select(mapColumn(\n\t\tvendor_id,\n\t\tpickup_datetime,\n\t\tdropoff_datetime,\n\t\tstore_and_fwd_flag,\n\t\trate_code_id,\n\t\tpickup_location_id,\n\t\tdropoff_location_id,\n\t\tpassenger_count,\n\t\ttrip_distance,\n\t\tfare_amount,\n\t\textra,\n\t\tmta_tax,\n\t\ttip_amount,\n\t\ttolls_amount,\n\t\tehail_fee,\n\t\timprovement_surcharge,\n\t\ttotal_amount,\n\t\tpayment_type,\n\t\ttrip_type,\n\t\tcongestion_surcharge,\n\t\ttrip_year,\n\t\ttrip_month,\n\t\ttaxi_type,\n\t\tdataset_file_nm,\n\t\tpickup_year,\n\t\tpickup_month,\n\t\tpickup_day,\n\t\tpickup_hour,\n\t\tpickup_minute,\n\t\tpickup_second,\n\t\tdropoff_year,\n\t\tdropoff_month,\n\t\tdropoff_day,\n\t\tdropoff_hour,\n\t\tdropoff_minute,\n\t\tdropoff_second,\n\t\tpayment_type_description,\n\t\trate_code_description,\n\t\tpickup_borough,\n\t\tpickup_zone,\n\t\tpickup_service_zone,\n\t\tdropoff_borough = Borough,\n\t\tdropoff_zone = Zone,\n\t\tdropoff_service_zone = service_zone,\n\t\tmonth_name_short,\n\t\tmonth_name_full,\n\t\ttrip_type_description\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> ReorderAndRenameDropoffZone\nReorderAndRenameDropoffZone, RawVendor join(ReorderAndRenameDropoffZone@vendor_id == RawVendor@vendor_id,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'right')~> JoinWithVendor\nJoinWithVendor select(mapColumn(\n\t\tvendor_id = ReorderAndRenameDropoffZone@vendor_id,\n\t\tpickup_datetime,\n\t\tdropoff_datetime,\n\t\tstore_and_fwd_flag,\n\t\trate_code_id,\n\t\tpickup_location_id,\n\t\tdropoff_location_id,\n\t\tpassenger_count,\n\t\ttrip_distance,\n\t\tfare_amount,\n\t\textra,\n\t\tmta_tax,\n\t\ttip_amount,\n\t\ttolls_amount,\n\t\tehail_fee,\n\t\timprovement_surcharge,\n\t\ttotal_amount,\n\t\tpayment_type,\n\t\ttrip_type,\n\t\tcongestion_surcharge,\n\t\tvendor_abbreviation = abbreviation,\n\t\tvendor_description = description,\n\t\ttrip_type_description,\n\t\tmonth_name_short,\n\t\tmonth_name_full,\n\t\tpayment_type_description,\n\t\trate_code_description,\n\t\tpickup_borough,\n\t\tpickup_zone,\n\t\tpickup_service_zone,\n\t\tdropoff_borough,\n\t\tdropoff_zone,\n\t\tdropoff_service_zone,\n\t\tpickup_year,\n\t\tpickup_month,\n\t\tpickup_day,\n\t\tpickup_hour,\n\t\tpickup_minute,\n\t\tpickup_second,\n\t\tdropoff_year,\n\t\tdropoff_month,\n\t\tdropoff_day,\n\t\tdropoff_hour,\n\t\tdropoff_minute,\n\t\tdropoff_second,\n\t\ttrip_year,\n\t\ttrip_month,\n\t\ttaxi_type,\n\t\tdataset_file_nm\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> FinalColumnList\nJoinWithPaymentType, RawTripType join(SelectGreenTaxiColumns@trip_type == RawTripType@trip_type,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinWithTripType\nJoinWithTripType, RawTripMonth join(DerivedColumnsGreenTaxi@trip_month == toInteger(RawTripMonth@trip_month),\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinWithTripMonth\nFinalColumnList sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcompressionType: 'snappy',\n\tcompressionLevel: 'Fastest',\n\tfileSystem: 'nyctaxi',\n\tfolderPath: 'nyctaxi-curated-df/transactions/green-taxi',\n\tmergeSchema: true,\n\tautoCompact: true,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tpartitionBy('key',\n\t\t0,\n\t\ttrip_year,\n\t\ttrip_month\n\t)) ~> SinkToCuratedZone"
+		}
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"name": "3_View Related To Sales Order Lines",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 1"
+		},
+		"content": {
+			"query": "USE logicaldw\nGO\n\n-- DROP VIEW LDW.vwSuppliers \nCREATE VIEW LDW.vwSuppliers\nAS\nSELECT * FROM\n    OPENROWSET\n    (\n        BULK 'Purchasing_Suppliers/*.csv',\n        DATA_SOURCE = 'ExternalRawDataLake',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR ='|'\n    ) AS fct\n\n-- DROP VIEW LDW.vwSupplierCategories\nCREATE VIEW LDW.vwSupplierCategories\nAS\nSELECT * FROM\n    OPENROWSET\n    (\n        BULK 'Purchasing_SupplierCategories/*.csv',\n        DATA_SOURCE = 'ExternalRawDataLake',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR ='|'\n    ) AS fct\n\n-- DROP VIEW LDW.vwStockItems\nCREATE VIEW LDW.vwStockItems\nAS\n    SELECT * FROM\n    OPENROWSET\n    (\n    BULK 'Warehouse_StockItems/*.csv',\n    DATA_SOURCE = 'ExternalRawDataLake',\n    FORMAT = 'CSV',\n    PARSER_VERSION = '2.0',\n    HEADER_ROW = TRUE,\n    FIELDTERMINATOR ='|'\n    ) AS fct\n\n-- DROP VIEW LDW.vwColors \nCREATE VIEW LDW.vwColors\nAS\nSELECT * FROM\n    OPENROWSET\n    (\n        BULK 'Warehouse_Colors/*.csv',\n        DATA_SOURCE = 'ExternalRawDataLake',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR ='|'\n    ) AS fct\n\n-- DROP VIEW LDW.vwPackageTypes\nCREATE VIEW LDW.vwPackageTypes\nAS\nSELECT * FROM\n    OPENROWSET\n    (\n        BULK 'Warehouse_PackageTypes/*.csv',\n        DATA_SOURCE = 'ExternalRawDataLake',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR ='|'\n    ) AS fct",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

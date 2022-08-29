@@ -1,0 +1,20 @@
+{
+	"name": "4_DImensions and Fact for Analysis",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 2"
+		},
+		"content": {
+			"query": "USE LogicalDw\nGO\n\n-- Once our Dimension and Fact data has been written in Parquet format using the CETAS process and new Views created to read this data, we can now use the Dimension and Fact views to query the sales data.\n\n--Group Sales by Date\nSELECT DD.[Year] AS SalesYear,\n    DD.[Month] AS SalesMonth,\n    SUM(FS.SalesOrderQuantity) AS SalesOrderQuantity,\n    SUM(FS.SalesOrderUnitPrice) AS SalesOrderUnitPrice,\n    COUNT(DISTINCT FS.OrderID) AS SalesOrderTotal\nFROM LDW.vwFactSales FS\nINNER JOIN LDW.vwDimDate DD ON DD.DateKey = FS.OrderDateKey\nGROUP BY DD.[Year], DD.[Month]\nORDER BY DD.[Year], DD.[Month];\n\n--Group Sales by Customer\nSELECT DC.DeliverySalesTerritory,\n    SUM(FS.SalesOrderQuantity) AS SalesOrderQuantity,\n    SUM(FS.SalesOrderUnitPrice) AS SalesOrderUnitPrice,\n    COUNT(DISTINCT OrderID) AS SalesOrderTotal\nFROM LDW.vwFactSales FS\nINNER JOIN LDW.vwDimCustomer DC ON DC.CustomerKey = FS.CustomerKey\nGROUP BY DC.DeliverySalesTerritory\nORDER BY SUM(FS.SalesOrderQuantity) DESC;\n\n--Group Sales by Supplier\n--Note that multiple Suppliers can be linked to a single Sales Order\nSELECT DS.SupplierName,\n    SUM(FS.SalesOrderQuantity) AS SalesOrderQuantity,\n    SUM(FS.SalesOrderUnitPrice) AS SalesOrderUnitPrice\nFROM LDW.vwFactSales FS\nINNER JOIN LDW.vwDimSupplier DS ON DS.SupplierKey = FS.SupplierKey\nGROUP BY DS.SupplierName\nORDER BY SUM(FS.SalesOrderQuantity) DESC;\n\n\n\n-- We can also check the data types that have been created, perhaps there is further optimisation available by re-writing the data and using more efficient data types.\nEXEC sp_describe_first_result_set N'SELECT * FROM LDW.vwDimDate';\nEXEC sp_describe_first_result_set N'SELECT * FROM LDW.vwDimSupplier';\nEXEC sp_describe_first_result_set N'SELECT * FROM LDW.vwDimStockItem';\nEXEC sp_describe_first_result_set N'SELECT * FROM LDW.vwDimCustomer';\nEXEC sp_describe_first_result_set N'SELECT * FROM LDW.vwFactSales';",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

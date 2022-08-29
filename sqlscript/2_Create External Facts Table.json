@@ -1,0 +1,20 @@
+{
+	"name": "2_Create External Facts Table",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 2"
+		},
+		"content": {
+			"query": "USE LogicalDw\nGO\n\n\n-- In this scenario we’ll create a single Fact table from the source Sales Order and Sales Order Detail data with a link to all dimensions. \n-- As the Sales Order (header) data does not contain any information that must be split out across multiple Sales Order Detail lines such as shipping amounts, \n-- we will model our data by taking any header attributes down into the detail.\n\n-- We could model our Facts as separate “Header” and “Line” to remove any DISTINCT operations on the Sales Order count but for this scenario we will model as a single Fact.\n\n-- If a CETAS operation is attempted on a folder that already exists, for example writing out the Sales Orders has already been completed but another attempt is made, \n-- the operation will fail due to the folder already existing. Now, this means that duplicate data cannot be written out to the folder which is a benefit, \n-- however if you need to write out a new version of the data then the folder (and contents) will need to be deleted before another CETAS operation can be attempted. \n-- You do this by issuing the DROP EXTERNAL TABLE… command then deleting the newly-created folder.\nCREATE EXTERNAL TABLE STG.FactSales\nWITH\n    (\n        LOCATION = 'conformed/facts/factsales/initial',\n        DATA_SOURCE = ExternalCuratedDataLake,\n        FILE_FORMAT = SynapseParquetFormat\n    )\nAS\nSELECT\n    --Surrogate Keys\n    DC.CustomerKey,\n    CAST(FORMAT(SO.OrderDate,'yyyyMMdd') AS INT) as OrderDateKey,\n    DSI.StockItemKey,\n    DS.SupplierKey,\n    --Degenerate Dimensions\n    CAST(SO.OrderID AS INT) AS OrderID,\n    CAST(SOL.OrderLineID AS INT) AS OrderLineID,\n    --Measure\n    CAST(SOL.Quantity AS INT) AS SalesOrderQuantity,\n    CAST(SOL.UnitPrice AS DECIMAL(18,2)) AS SalesOrderUnitPrice\nFROM LDW.vwSalesOrdersLines SOL\nINNER JOIN LDW.vwSalesOrders SO ON SOL.OrderID = SO.OrderID\nLEFT JOIN LDW.vwDimCustomer DC ON DC.CustomerID = SO.CustomerID\nLEFT JOIN LDW.vwDimStockItem DSI ON DSI.StockItemID = SOL.StockItemID\nLEFT JOIN LDW.vwStockItems SI ON SI.StockItemID = DSI.StockItemID\nLEFT JOIN LDW.vwDimSupplier DS ON DS.SupplierID = SI.SupplierID;\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

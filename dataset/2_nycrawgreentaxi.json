@@ -1,0 +1,116 @@
+{
+	"name": "2_nycrawgreentaxi",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azrawdatalakeash",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "2_RawToCurated/Raw/GreenTaxi"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": "nyctaxi"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "vendor_id",
+				"type": "INT64"
+			},
+			{
+				"name": "pickup_datetime",
+				"type": "INT96"
+			},
+			{
+				"name": "dropoff_datetime",
+				"type": "INT96"
+			},
+			{
+				"name": "store_and_fwd_flag",
+				"type": "UTF8"
+			},
+			{
+				"name": "rate_code_id",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "pickup_location_id",
+				"type": "INT64"
+			},
+			{
+				"name": "dropoff_location_id",
+				"type": "INT64"
+			},
+			{
+				"name": "passenger_count",
+				"type": "INT64"
+			},
+			{
+				"name": "trip_distance",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "fare_amount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "extra",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "mta_tax",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "tip_amount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "tolls_amount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "ehail_fee",
+				"type": "INT32"
+			},
+			{
+				"name": "improvement_surcharge",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "total_amount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "payment_type",
+				"type": "INT64"
+			},
+			{
+				"name": "trip_type",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "congestion_surcharge",
+				"type": "INT32"
+			},
+			{
+				"name": "taxi_type",
+				"type": "UTF8"
+			},
+			{
+				"name": "trip_year",
+				"type": "UTF8"
+			},
+			{
+				"name": "trip_month",
+				"type": "UTF8"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

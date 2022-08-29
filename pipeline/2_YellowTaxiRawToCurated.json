@@ -1,0 +1,165 @@
+{
+	"name": "2_YellowTaxiRawToCurated",
+	"properties": {
+		"activities": [
+			{
+				"name": "2_YellowTaxiRawToCurated",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Cleanup Directories",
+						"dependencyConditions": [
+							"Succeeded",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "2_nycrawtocuratedyellowtaxidf",
+						"type": "DataFlowReference"
+					},
+					"integrationRuntime": {
+						"referenceName": "azdataaiir",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Cleanup Directories",
+				"type": "Delete",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "2_nyccuratedyellowtaxi",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true
+					}
+				}
+			},
+			{
+				"name": "Delete committed Files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Delete success files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "2_nyccuratedyellowtaxi",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "_committed*"
+					}
+				}
+			},
+			{
+				"name": "Delete started Files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "2_YellowTaxiRawToCurated",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "2_nyccuratedyellowtaxi",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "_started*"
+					}
+				}
+			},
+			{
+				"name": "Delete success files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Delete started Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "2_nyccuratedyellowtaxi",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "_SUCCESS*"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "NycTaxi/2_RawToCurated"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-08-28T02:18:07Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

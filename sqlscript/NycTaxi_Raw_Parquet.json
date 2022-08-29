@@ -1,0 +1,20 @@
+{
+	"name": "NycTaxi_Raw_Parquet",
+	"properties": {
+		"folder": {
+			"name": "NycTaxi/Serverless"
+		},
+		"content": {
+			"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://azrawdatalakeash.dfs.core.windows.net/nyctaxi/nyctaxi-staging/transactional-data/type=green/year=2014/month=*/*.parquet',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

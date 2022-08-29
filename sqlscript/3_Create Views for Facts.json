@@ -1,0 +1,20 @@
+{
+	"name": "3_Create Views for Facts",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 2"
+		},
+		"content": {
+			"query": "USE LogicalDW\nGo\n\nCREATE VIEW LDW.vwFactSales\nAS\nSELECT * FROM\n    OPENROWSET\n    (\n    BULK 'conformed/facts/factsales/initial',\n    DATA_SOURCE = 'ExternalCuratedDataLake',\n    FORMAT = 'Parquet'\n) AS fct",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

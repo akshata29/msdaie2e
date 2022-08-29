@@ -1,0 +1,20 @@
+{
+	"name": "1_Create Views for Dimensions",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 2"
+		},
+		"content": {
+			"query": "USE logicaldw\nGO\n\n-- We now create Views on the newly written Parquet data. The primary reason for this is that further data can be written to different folders under the specific dimension folder. \n-- In Part 1 we created 2 Views to mimic dimensions, we will drop these views before creating the new Views.\nDROP VIEW LDW.vwDimCustomers;\nDROP VIEW LDW.vwDimStockItems;\n\n--Customer\nCREATE VIEW LDW.vwDimCustomer\nAS\nSELECT * FROM\n    OPENROWSET\n        (\n        BULK 'conformed/dimensions/dimcustomer/*/',\n        DATA_SOURCE = 'ExternalCuratedDataLake',\n        FORMAT = 'Parquet'\n    ) AS fct\n\n--StockItem\nCREATE VIEW LDW.vwDimStockItem\nAS\nSELECT * FROM\n    OPENROWSET\n    (\n        BULK 'conformed/dimensions/dimstockitem/*/',\n        DATA_SOURCE = 'ExternalCuratedDataLake',\n        FORMAT = 'Parquet'\n    ) AS fct\n\n\n--Supplier\nCREATE VIEW LDW.vwDimSupplier\nAS\nSELECT * FROM\n    OPENROWSET\n    (\n        BULK 'conformed/dimensions/dimsupplier/*/',\n        DATA_SOURCE = 'ExternalCuratedDataLake',\n        FORMAT = 'Parquet'\n    ) AS fct\n\n--Date\nCREATE VIEW LDW.vwDimDate\nAS\n    SELECT * FROM\n    OPENROWSET\n    (\n        BULK 'conformed/dimensions/dimdate',\n        DATA_SOURCE = 'ExternalCuratedDataLake',\n        FORMAT = 'Parquet'\n    ) AS fct",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

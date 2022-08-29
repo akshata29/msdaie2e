@@ -1,0 +1,165 @@
+{
+	"name": "1_ReferenceStagingToRaw",
+	"properties": {
+		"activities": [
+			{
+				"name": "Load Reference Data to Raw",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Cleanup Directories",
+						"dependencyConditions": [
+							"Failed",
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "1_nycstagingtorawreferencedf",
+						"type": "DataFlowReference"
+					},
+					"integrationRuntime": {
+						"referenceName": "azdataaiir",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Cleanup Directories",
+				"type": "Delete",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "1_nycrawreference",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true
+					}
+				}
+			},
+			{
+				"name": "Delete committed Files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Load Reference Data to Raw",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "1_nycrawreference",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "_committed*"
+					}
+				}
+			},
+			{
+				"name": "Delete started Files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Delete committed Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "1_nycrawreference",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "_started*"
+					}
+				}
+			},
+			{
+				"name": "Delete success files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Delete started Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "1_nycrawreference",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "_SUCCESS*"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "NycTaxi/1_StagingToRaw"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-08-24T01:53:57Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,20 @@
+{
+	"name": "5_View for Analytical Queries",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 1"
+		},
+		"content": {
+			"query": "USE logicaldw\nGO\n\n-- We can now create Views to join these source data views together to start answering reporting/analytical questions such as “how many Sales Orders were placed for certain Stock Items”.\nCREATE VIEW LDW.vwDimStockItems\nAS\nSELECT  SI.StockItemID,\n    SI.StockItemName,\n    SI.LeadTimeDays,\n    SI.TaxRate,\n    SI.UnitPrice,\n    SI.SearchDetails,\n    PTUnit.PackageTypeName AS PackageTypeNameUnit,\n    PTOut.PackageTypeName AS PackageTypeNameOuter,\n    C.ColorName,\n    S.SupplierName,\n    S.PaymentDays,\n    SC.SupplierCategoryName\nFROM LDW.vwStockItems SI\nLEFT JOIN LDW.vwPackageTypes PTUnit ON PTUnit.PackageTypeID = SI.UnitPackageID\nLEFT JOIN LDW.vwPackageTypes PTOut ON PTOut.PackageTypeID = SI.OuterPackageID\nLEFT JOIN LDW.vwColors C ON C.ColorID = SI.ColorID\nLEFT JOIN LDW.vwSuppliers S ON S.SupplierID = SI.SupplierID\nLEFT JOIN LDW.vwSupplierCategories SC ON SC.SupplierCategoryID = S.SupplierCategoryID\n\n\nCREATE VIEW LDW.vwDimCustomers\nAS\nSELECT  C.CustomerID,\n    C.CustomerName,\n    C.AccountOpenedDate,\n    C.CreditLimit,\n    C.PaymentDays,\n    CT.CityName AS CityNameDelivery,\n    SP.StateProvinceCode AS StateProvinceCodeDelivery,\n    SP.StateProvinceName AS StateProvinceNameDelivery,\n    SP.SalesTerritory AS SalesTerritoryDelivery,\n    CR.Country AS CountryDelivery,\n    CR.Continent AS ContinentDelivery,\n    CR.Region AS RegionDelivery,\n    CR.Subregion AS SubregionDelivery,\n    P.FullName AS PrimaryContactPersonName,\n    CC.CustomerCategoryName,\n    BG.BuyingGroupName,\n    DM.DeliveryMethodName\nFROM LDW.vwCustomers C\nLEFT JOIN LDW.vwCities CT ON CT.CityID = C.DeliveryCityID\nLEFT JOIN LDW.vwStateProvinces SP ON SP.StateProvinceID = CT.StateProvinceID\nLEFT JOIN LDW.vwCountries CR ON CR.CountryID = SP.CountryID\nLEFT JOIN LDW.vwPeople P ON P.PersonID = C.PrimaryContactPersonID\nLEFT JOIN LDW.vwCustomerCategories CC ON CC.CustomerCategoryID = C.CustomerCategoryID\nLEFT JOIN LDW.vwBuyingGroups BG ON BG.BuyingGroupID = C.BuyingGroupID\nLEFT JOIN LDW.vwDeliveryMethods DM ON DM.DeliveryMethodID = C.DeliveryMethodID\n\n\n-- Now that we have 2 Views that have “denormalised” the source data, we can now use these views to join to the Sales Order and Sales Order Line views.\nSELECT DC.CustomerCategoryName,\n    DS.PackageTypeNameUnit,\n    SUM(SOL.Quantity) AS TotalOrderLineQuantity,\n    SUM(SOL.UnitPrice) AS TotalOrderLineUnitPrice\nFROM LDW.vwSalesOrdersLines SOL\nINNER JOIN LDW.vwSalesOrders SO ON SO.OrderID = SOL.OrderID\nINNER JOIN LDW.vwDimCustomers DC ON DC.CustomerID = SO.CustomerID\nINNER JOIN LDW.vwDimStockItems DS ON DS.StockItemID = SOL.StockItemID\nGROUP BY DC.CustomerCategoryName,\nDS.PackageTypeNameUnit",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

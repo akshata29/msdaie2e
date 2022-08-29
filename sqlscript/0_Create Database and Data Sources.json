@@ -1,0 +1,20 @@
+{
+	"name": "0_Create Database and Data Sources",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 1"
+		},
+		"content": {
+			"query": "CREATE DATABASE logicaldw;\n\nUSE logicaldw;\n\nCREATE EXTERNAL DATA SOURCE ExternalRawDataLake\nWITH (\n    LOCATION   = 'https://azrawdatalakeash.dfs.core.windows.net/wwi'\n);\n\n\nCREATE SCHEMA LDW authorization dbo;\n\nCREATE MASTER KEY ENCRYPTION BY PASSWORD = 'P2ssw0rd2903$';\n\n-- As we are using “User Identity” in the database scoped credential, the user account which is being used in the Synapse Studio will need to be added to the \n-- Azure Storage Access Control (IAM) as a Storage Blob Data Contributor. Parts two and three of this blog series require data to be written to the storage account as well as read.\nCREATE DATABASE SCOPED CREDENTIAL SynapseUserIdentity\nWITH IDENTITY = 'User Identity';\n\n-- Azure Storage Authentication Alternative\n-- In the SQL code above, we have used the “User Identity” option to enable pass-through authentication, however query performance can be improved using the SAS token authentication option instead. \n--CREATE DATABASE SCOPED CREDENTIAL [SasToken]\n--    WITH IDENTITY = 'SHARED ACCESS SIGNATURE',\n--     SECRET = '?sv=2021-06-08&ss=bfqt&srt=sco&sp=rwdlacupyx&se=2029-08-26T04:33:02Z&st=2022-08-25T20:33:02Z&spr=https&sig=0WrCxw5Av4UIy%2B0ZCIckXj5JaFfLpqG4uaUCakafxdU%3D';\n--GO\n\n--CREATE EXTERNAL DATA SOURCE ExternalDataSourceDataLakeSAS\n--WITH (    LOCATION   = 'https://azrawdatalakeash.dfs.core.windows.net/wwi',\n--          CREDENTIAL = SasToken\n--)\n\nALTER DATABASE logicaldw COLLATE Latin1_General_100_BIN2_UTF8;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

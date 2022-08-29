@@ -1,0 +1,20 @@
+{
+	"name": "0_Manual CETAS To Load New Data",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 3"
+		},
+		"content": {
+			"query": "USE LogicalDW\nGO\n\n-- In our data warehousing scenario we have Sales Order data that is being written to the Data Lake in a YYYY-MM-DD dated folder structure, \n-- each days sales are saved to a separate folder. We now have new Sales Orders and Sales Order Lines CSV files to load for 2 days. \n-- There has also been an update to an existing Supplier to change their Supplier Category, this change we must track over time. \n-- We will reflect these changes to the Supplier as a Type 2 Slowly Changing Dimension in that we will create a new Supplier dimension row whilst still keeping the old value for historical purposes. \n-- There has also been a new Supplier added which must be added to the dimension.\n\n-- The Sales data needs placing in the following new folders. YYYY-MM-DD must be replaced with the date of the data.\n--/partitionedsalesorder/YYYY-MM-DD/\n--/partitionedsalesorderline/YYYY-MM-DD/\n--The Supplier data needs placing in changeddata/2021-06-22/Purchasing_Suppliers/\n\n-- Manual CETAS to load new Sales Order data\n-- We’ll start by loading the 18th April CSV data by specifying a date folder named as YYYY-MM-DD in the LOCATION parameter in the CETAS statement and using the FilePathDate column in the source \n-- View to only select the data we need to load. The FilePathDate column in the View is the result of the filepath() function which can be used as a filter to only select/scan the requested folder. \n-- This reduces the amount of data processed as only the required folder and therefore data within the folder is scanned.\n-- DROP EXTERNAL TABLE STG.FactSales \nCREATE EXTERNAL TABLE STG.FactSales\nWITH\n    (\n    LOCATION = 'conformed/facts/factsales/incremental/2021-04-18',\n    DATA_SOURCE = ExternalCuratedDataLake,\n    FILE_FORMAT = SynapseParquetFormat\n    )\nAS\nSELECT\n    --Surrogate Keys\n    DC.CustomerKey,\n    CAST(FORMAT(SO.OrderDate,'yyyyMMdd') AS INT) as OrderDateKey,\n    DSI.StockItemKey,\n    DS.SupplierKey,\n    --Degenerate Dimensions\n    CAST(SO.OrderID AS INT) AS OrderID,\n    CAST(SOL.OrderLineID AS INT) AS OrderLineID,\n    --Measure\n    CAST(SOL.Quantity AS INT) AS SalesOrderQuantity,\n    CAST(SOL.UnitPrice AS DECIMAL(18,2)) AS SalesOrderUnitPrice\nFROM LDW.vwSalesOrdersLines SOL\nINNER JOIN LDW.vwSalesOrders SO ON SOL.OrderID = SO.OrderID\nLEFT JOIN LDW.vwDimCustomer DC ON DC.CustomerID = SO.CustomerID\nLEFT JOIN LDW.vwDimStockItem DSI ON DSI.StockItemID = SOL.StockItemID\nLEFT JOIN LDW.vwStockItems SI ON SI.StockItemID = DSI.StockItemID\nLEFT JOIN LDW.vwDimSupplier DS ON DS.SupplierID = SI.SupplierID\nWHERE CAST(CONVERT(varchar, SOL.FilePathDate, 23) AS CHAR(10)) = '2021-04-18' AND CAST(CONVERT(varchar, SO.FilePathDate, 23) AS CHAR(10)) = '2021-04-18';",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

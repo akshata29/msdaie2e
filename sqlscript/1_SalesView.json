@@ -1,0 +1,20 @@
+{
+	"name": "1_SalesView",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 1"
+		},
+		"content": {
+			"query": "USE logicaldw\nGO\n\n-- We’ll now create Views in the Serverless SQL database to enable querying of the source data. There will be no transformation of the data at this stage except for column selection and \n-- data type assignment for certain views.\n\n-- To contrast different approaches when creating the Views, in the LDW.vwSalesOrders view, we are using the HEADER_ROW = TRUE option with no explicit column selection from the underlying CSVs. \n-- In the LDW.vwSalesOrdersLines we are replacing this option with ROWSTARTS = 2 and using the WITH option to specify the column to be selected, the column names which will be used in the view, \n-- and the data type.\n\n-- The Views also contain the filepath() function which is used to “partition prune” (filter) on specific folders in the data lake to minimise scanning all folders and files. \n-- This saves both time and money (amount of data processed = $$$!).\n--DROP VIEW LDW.vwSalesOrders\nCREATE VIEW LDW.vwSalesOrders\nAS\nSELECT *,\n    CAST(fct.filepath(1) AS DATE) AS FilePathDate\nFROM\n    OPENROWSET\n    (\n        BULK 'partitionedsalesorder/OrderDatePartition=*/*.csv',\n        DATA_SOURCE = 'ExternalRawDataLake',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR ='|'\n    ) AS fct\n\n\n-- DROP VIEW LDW.vwSalesOrdersLines\nCREATE VIEW LDW.vwSalesOrdersLines\nAS\nSELECT *,\n    CAST(fct.filepath(1) AS DATE) AS FilePathDate\nFROM\n    OPENROWSET\n    (\n    BULK 'partitionedsalesorderline/OrderDate=*/*.csv',\n    DATA_SOURCE = 'ExternalRawDataLake',\n    FORMAT = 'CSV',\n    PARSER_VERSION = '2.0',\n    HEADER_ROW = TRUE,\n    FIELDTERMINATOR ='|'\n    ) AS fct",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"name": "0_Load Sales Fact",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 4"
+		},
+		"content": {
+			"query": "USE logicaldw\nGO\n\n--- Summary\n--Start by changing the Fact Sales parquet data storage so that all data is stored in a /YYYY-MM-DD/ folder structure\n--Add a new column to the Fact Sales view to expose the filepath() function which is used to “partition prune” (filter on specific date folders in the Data Lake) and therefore reduce data processed\n--Connect Power BI to the Dimension and Fact views in DirectQuery mode and create appropriate relationships using the surrogate keys, the Dim Date to Fact Sales join is based on the date field rather \n--  than an integer key\n-- Create a basic data visualisation to show Sales Order Quantity by Month Name and see Serverless SQL data processed at 218MB\n-- Filter only on July and see that Serverless SQL data processed remains at 218MB, which means that there is no source folder filtering, we see a JOIN in the SQL from Power BI to Serverless \n--    SQL Pools to filter the dates\n-- Change the Dim Date object in Power BI to Import whilst keeping Fact Sales as DirectQuery, however we still see the same behaviour\n-- Remove the Month Name label from the data visualisation and now we see data processed reduced to 39MB, we see IN being used in the SQL to filter the dates now\n-- Create a copy of the Dim Date object as Dim Date Filter and used this as the filter whilst keeping the original Dim Date as a chart axis in the data visualisation and\n--      we see data processed still at 39MB\n-- Conclude that if Power BI passes the date filters in using IN then Serverless SQL Pools will successfully use the filepath() filter and data processed is reduced\n-- Explored an alternative which involved removing the Date dimension then using the SalesOrderPathDate column in the Fact Sales view to create various date attributes, \n--  this also reduced the data processed when filtering\n\n-- Load the Sales Fact by calling SP\n-- DROP VIEW LDW.UniqueOrderDates\n--CREATE VIEW LDW.UniqueOrderDates\n--AS\n--    select distinct CAST(FORMAT(SO.OrderDate,'yyyy-MM-dd') AS CHAR(10)) as OrderDateKey\n--     ,ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS Sequence\n--    FROM  LDW.vwSalesOrders SO\n--SELECT * FROM LDW.UniqueOrderDates\n\nDECLARE @nbr_statements INT = (SELECT COUNT(*) FROM STG.DimDate WHERE CAST(FORMAT(Date,'yyyy-MM-dd') AS CHAR(10)) > '2019-06-09')\n,       @i INT = 1\n\nDECLARE @OrderDateKey CHAR(10)\n\nWHILE   @i <= @nbr_statements\nBEGIN\n    SELECT @OrderDateKey = CAST(FORMAT(Date,'yyyy-MM-dd') AS CHAR(10)) from \n        (\n            Select ROW_NUMBER() OVER ( order by DateKey) as 'Row_Number', * \n            from STG.DimDate \n            WHERE CAST(FORMAT(Date,'yyyy-MM-dd') AS CHAR(10)) > '2019-06-09'\n        ) as q Where q.Row_Number = @i\n    PRINT @OrderDatekey\n    EXEC STG.FactSalesLoadSCD @OrderDateKey;\n    SET     @i +=1;\nEND\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

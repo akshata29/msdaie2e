@@ -1,0 +1,11 @@
+{
+	"name": "azkeyvaultash",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://azkeyvaultash.vault.azure.net/"
+		}
+	}
+}

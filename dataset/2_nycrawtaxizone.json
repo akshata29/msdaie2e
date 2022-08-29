@@ -1,0 +1,41 @@
+{
+	"name": "2_nycrawtaxizone",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azrawdatalakeash",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "2_RawToCurated/Raw/Reference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "nyctaxi-raw-df/reference/taxi-zone",
+				"fileSystem": "nyctaxi"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "location_id",
+				"type": "UTF8"
+			},
+			{
+				"name": "borough",
+				"type": "UTF8"
+			},
+			{
+				"name": "zone",
+				"type": "UTF8"
+			},
+			{
+				"name": "service_zone",
+				"type": "UTF8"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

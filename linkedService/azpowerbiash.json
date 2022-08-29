@@ -1,0 +1,12 @@
+{
+	"name": "azpowerbiash",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "PowerBIWorkspace",
+		"typeProperties": {
+			"workspaceID": "ffed2ab8-ce05-4fa2-a8ae-311317e4d222",
+			"tenantID": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+		}
+	}
+}

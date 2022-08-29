@@ -1,0 +1,168 @@
+{
+	"name": "1_GreenTaxiStagingToRaw",
+	"properties": {
+		"activities": [
+			{
+				"name": "Cleanup Directories",
+				"type": "Delete",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "1_nyctaxirawgreends",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "LoadGreenTaxiFromStagingToRaw",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Cleanup Directories",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "1_nycstagingtorawgreentaxidf",
+						"type": "DataFlowReference"
+					},
+					"integrationRuntime": {
+						"referenceName": "azdataaiir",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Delete success files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "LoadGreenTaxiFromStagingToRaw",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "1_nyctaxirawgreends",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "_SUCCESS*",
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "Delete started Files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Delete success files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "1_nyctaxirawgreends",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "_started*",
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "Delete committed Files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Delete started Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "1_nyctaxirawgreends",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "_committed*",
+						"enablePartitionDiscovery": false
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "NycTaxi/1_StagingToRaw"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-08-24T15:07:35Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

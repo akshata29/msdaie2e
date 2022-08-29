@@ -1,0 +1,20 @@
+{
+	"name": "1_Fact Sales View",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 4"
+		},
+		"content": {
+			"query": "-- In Part 2 we constructed the Fact Sales data by JOINing to the set of dimensions on the business key (source system ID column E.G. SupplierId) to obtain the Surrogate Key (E.G. SupplierKey). \n-- However, for the OrderDateKey we used the SQL FORMAT function to transform the Sales Order Date into an Integer key. E.G. 2021-04-16 became 20210416. Although this allows us to join the Fact Sales \n-- and Dim Date tables together using this key and filter on specific dates or a date range, we do not have the benefit of partition pruning (filter source folders in the Data Lake) when using this key. \n-- Let’s look at why…\n\n-- Serverless SQL Pools provides a SQL function called filepath() which can be used to filter source folders in the Data Lake, this is useful to reduce the amount of data processed (and therefore cost) \n-- and also for performance when selecting data. We will now add this function into the LDW.vwFactSales view as a new column called SalesOrderPathDate and specify the /YYYY-MM-DD/ folder level \n-- from the Data Lake structure (the third * wildcard in the BULK parameter). We will then be able to use this new column to filter on specific dates and Serverless SQL Pools will only scan the \n-- contents of folders that match the filter.\n\nUSE LogicalDw\nGO\n\nDROP VIEW LDW.vwFactSales;\nGO\n\nCREATE VIEW LDW.vwFactSales\nAS\nSELECT *, CAST(CONCAT(fct.filepath(1), '-', fct.filepath(2), '-', fct.filepath(3)) AS Date) AS SalesOrderPathDate\n--,CAST(fct.filepath(3) AS DATE) AS SalesOrderPathDate\n FROM \nOPENROWSET \n(\n    BULK 'conformed/facts/factsales/*/*/*/*.parquet',\n    DATA_SOURCE = 'ExternalCuratedDataLake',\n    FORMAT = 'Parquet'\n) AS fct\n\n-- We can now use the SalesOrderPathDate column to filter on specific source system folders:\nSELECT COUNT(OrderLineID)\nFROM LDW.vwFactSales\nWHERE SalesOrderPathDate = '2020-07-15'\n\nSELECT SalesOrderPathDate,\nCOUNT(OrderLineID)\nFROM LDW.vwFactSales\nWHERE MONTH(SalesOrderPathDate) = 7 AND YEAR(SalesOrderPathDate) = 2020\nGROUP BY SalesOrderPathDate\nORDER BY SalesOrderPathDate",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

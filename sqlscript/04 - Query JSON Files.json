@@ -1,0 +1,20 @@
+{
+	"name": "04 - Query JSON Files",
+	"properties": {
+		"folder": {
+			"name": "OpenDatasets/SQL Serverless"
+		},
+		"content": {
+			"query": "/* Covid-19 ECDC cases opendata set */\n\n/* Read JSON files */\nSELECT TOP 10 *\nFROM OPENROWSET(\n        BULK 'https://pandemicdatalake.blob.core.windows.net/public/curated/covid-19/ecdc_cases/latest/ecdc_cases.json',\n        FORMAT = 'csv',\n        FIELDTERMINATOR ='0x0b',\n        FIELDQUOTE = '0x0b'\n    ) with (doc nvarchar(max)) as rows\ngo\nSELECT TOP 10 *\nFROM OPENROWSET(\n        BULK 'https://pandemicdatalake.blob.core.windows.net/public/curated/covid-19/ecdc_cases/latest/ecdc_cases.json',\n        FORMAT = 'csv',\n        FIELDTERMINATOR ='0x0b',\n        FIELDQUOTE = '0x0b',\n        ROWTERMINATOR = '0x0b' --> You need to override rowterminator to read classic JSON\n    ) WITH (doc nvarchar(max)) as rows\n\n\n/* Books dataset */\n\n/* In order to process JSON files using JSON_VALUE and JSON_QUERY you need to to read json file from storage as single column.\nFollowing script reads book1.json file as single column. */\n\nSELECT\n    *\nFROM\n    OPENROWSET(\n        BULK 'https://sqlondemandstorage.blob.core.windows.net/public-json/books/book1.json',\n        FORMAT='CSV',\n        FIELDTERMINATOR ='0x0b',\n        FIELDQUOTE = '0x0b',\n        ROWTERMINATOR = '0x0b'\n    )\n    WITH (\n        jsonContent varchar(8000)\n    ) AS [r]\n\n/* Querying JSON files using JSON_VALUE */\n\n/*Following query shows how to use JSON_VALUE to retrieve scalar values (title, publisher)\nfrom book with title Probabilistic and Statistical Methods in Cryptology, An Introduction by Selected Topics.*/\nSELECT\n    JSON_VALUE(jsonContent, '$.title') AS title,\n\tJSON_VALUE(jsonContent, '$.publisher') as publisher,\n\tjsonContent\nFROM\n    OPENROWSET(\n        BULK 'https://sqlondemandstorage.blob.core.windows.net/public-json/books/*.json',\n\t\tFORMAT='CSV',\n        FIELDTERMINATOR ='0x0b',\n        FIELDQUOTE = '0x0b',\n        ROWTERMINATOR = '0x0b'\n    )\n    WITH (\n        jsonContent varchar(8000)\n    ) AS [r]\nWHERE\n\tJSON_VALUE(jsonContent, '$.title') = 'Probabilistic and Statistical Methods in Cryptology, An Introduction by Selected Topics'\n\n/* Querying JSON files using JSON_QUERY */\n\n/* Following query shows how to use JSON_QUERY to retrieve objects and arrays (authors)\nfrom book with title Probabilistic and Statistical Methods in Cryptology, An Introduction by Selected Topics. */\n\nSELECT\n    JSON_QUERY(jsonContent, '$.authors') AS authors,\n\tjsonContent\nFROM\n    OPENROWSET(\n        BULK 'https://sqlondemandstorage.blob.core.windows.net/public-json/books/*.json',\n\t\tFORMAT='CSV',\n        FIELDTERMINATOR ='0x0b',\n        FIELDQUOTE = '0x0b',\n        ROWTERMINATOR = '0x0b'\n    )\n    WITH (\n        jsonContent varchar(8000)\n    ) AS [r]\nWHERE\n\tJSON_VALUE(jsonContent, '$.title') = 'Probabilistic and Statistical Methods in Cryptology, An Introduction by Selected Topics'\n\n/* Querying JSON files using OPENJSON */\n\n/* Following query shows how to use OPENJSON to retrieve objects and properties\nwithin book with title Probabilistic and Statistical Methods in Cryptology, An Introduction by Selected Topics. */\n\nSELECT\n\tj.*\nFROM\n    OPENROWSET(\n        BULK 'https://sqlondemandstorage.blob.core.windows.net/public-json/books/*.json',\n\t\tFORMAT='CSV',\n        FIELDTERMINATOR ='0x0b',\n        FIELDQUOTE = '0x0b',\n        ROWTERMINATOR = '0x0b'\n    )\n    WITH (\n        jsonContent NVARCHAR(4000) --Note that we have to use NVARCHAR(4000) for OPENJSON to work.\n    ) AS [r]\nCROSS APPLY OPENJSON(jsonContent) AS j\nWHERE\n\tJSON_VALUE(jsonContent, '$.title') = 'Probabilistic and Statistical Methods in Cryptology, An Introduction by Selected Topics'\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

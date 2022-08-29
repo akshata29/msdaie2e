@@ -1,0 +1,20 @@
+{
+	"name": "02 - Query Parquet Files",
+	"properties": {
+		"folder": {
+			"name": "OpenDatasets/SQL Serverless"
+		},
+		"content": {
+			"query": "/* Covid-19 ECDC cases opendata set */\n\n/* Read parquet file */\nSELECT TOP 10 *\nFROM OPENROWSET(\n    BULK 'https://pandemicdatalake.blob.core.windows.net/public/curated/covid-19/ecdc_cases/latest/ecdc_cases.parquet',\n    FORMAT = 'parquet') as rows\n\n\n/* Explicitly specify schema */\nSELECT TOP 10 *\nFROM OPENROWSET(\n        BULK 'https://pandemicdatalake.blob.core.windows.net/public/curated/covid-19/ecdc_cases/latest/ecdc_cases.parquet',\n        FORMAT = 'parquet'\n    ) WITH ( date_rep date, cases int, geo_id varchar(6) ) as rows\n\n\n/* New York City Taxi opendata set */\n\n/* Query set of parquet files */\nSELECT\n    YEAR(tpepPickupDateTime),\n    passengerCount,\n    COUNT(*) AS cnt\nFROM\n    OPENROWSET(\n        BULK 'https://azureopendatastorage.blob.core.windows.net/nyctlc/yellow/puYear=2018/puMonth=*/*.snappy.parquet',\n        FORMAT='PARQUET'\n    ) WITH (\n        tpepPickupDateTime DATETIME2,\n        passengerCount INT\n    ) AS nyc\nGROUP BY\n    passengerCount,\n    YEAR(tpepPickupDateTime)\nORDER BY\n    YEAR(tpepPickupDateTime),\n    passengerCount;\n\n\n/* Automatic schema inference */\nSELECT TOP 10 *\nFROM\n    OPENROWSET(\n        BULK 'https://azureopendatastorage.blob.core.windows.net/nyctlc/yellow/puYear=2018/puMonth=*/*.snappy.parquet',\n        FORMAT='PARQUET'\n    ) AS nyc\n\n\n/* Query partitioned data */\nSELECT\n    YEAR(tpepPickupDateTime),\n    passengerCount,\n    COUNT(*) AS cnt\nFROM\n    OPENROWSET(\n        BULK 'https://azureopendatastorage.blob.core.windows.net/nyctlc/yellow/puYear=*/puMonth=*/*.snappy.parquet',\n        FORMAT='PARQUET'\n    ) nyc\nWHERE\n    nyc.filepath(1) = 2017\n    AND nyc.filepath(2) IN (1, 2, 3)\n    AND tpepPickupDateTime BETWEEN CAST('1/1/2017' AS datetime) AND CAST('3/31/2017' AS datetime)\nGROUP BY\n    passengerCount,\n    YEAR(tpepPickupDateTime)\nORDER BY\n    YEAR(tpepPickupDateTime),\n    passengerCount;\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

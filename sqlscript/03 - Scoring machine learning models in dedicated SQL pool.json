@@ -1,0 +1,20 @@
+{
+	"name": "03 - Scoring machine learning models in dedicated SQL pool",
+	"properties": {
+		"folder": {
+			"name": "OpenDatasets/Dedicated SQL"
+		},
+		"content": {
+			"query": "/* This is a sample script for loading and scoring machine learning models using New York taxi data.\n   The query scenario is to predict the fare for taking a trip around New York City.\n   First, create two tables: to store the sample machine learning model and scoring data.\n   Next, load the data and the model in their respective tables.\n   Last, use T-SQL Predict to score the model.\n   Run the script below to see the results.\n*/\n\n-- Create a table to store the model.\nCREATE TABLE [dbo].[AllModels]\n(\n    [Model] [varbinary](max) NULL\n)\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,\n    HEAP\n)\nGO\n\n-- Next, load the hexadecimal string of the model from Azure Data Lake storage location into the table.\nCOPY INTO [AllModels] (Model)\nFROM 'https://nytaxiblob.blob.core.windows.net/samplepredictdata/NYC-fare-prediction.onnx.hex'\nWITH (\n    FILE_TYPE = 'CSV'\n)\n\n-- Create a table to store the sample scoring data.\nCREATE TABLE [dbo].[TaxiTrips]\n(\n\t[vendorID] [real] NOT NULL,\n\t[passengerCount] [real] NULL,\n\t[tripDistance] [real] NULL,\n\t[month_num] [real] NULL,\n\t[day_of_month] [real] NULL,\n\t[day_of_week] [real] NULL,\n\t[day_of_hour] [real] NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tHEAP\n)\nGO\n\n-- Next, load the sample data from the Azure Data Lake location.\nCOPY INTO [dbo].[TaxiTrips] (vendorID, passengerCount, tripDistance, month_num, day_of_month, day_of_week, day_of_hour)\nFROM 'https://nytaxiblob.blob.core.windows.net/samplepredictdata/tripstestdata.csv'\nWITH (\n    FILE_TYPE = 'CSV',\n\tFIRSTROW = 2,\n    FIELDTERMINATOR=',',\n    ROWTERMINATOR='0x0A'\n\t)\n\n-- Use Predict find out what the fare of various trips around New York City is.\n-- A new column is generated called totalAmount with data type float that will contain the predicted amount.\nSELECT [vendorID],\n \t   [passengerCount],\n\t   [tripDistance],\n\t   [month_num],\n\t   [day_of_month],\n\t   [day_of_week],\n\t   [day_of_hour],\n\t   [totalAmount]\nFROM PREDICT (model = (SELECT Model FROM AllModels), Data = dbo.TaxiTrips, RUNTIME=ONNX) WITH (totalAmount float)\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

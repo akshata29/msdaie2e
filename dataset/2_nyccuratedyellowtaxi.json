@@ -1,0 +1,24 @@
+{
+	"name": "2_nyccuratedyellowtaxi",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azcurateddatalakeash",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "2_RawToCurated/Curated/YellowTaxi"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "nyctaxi-curated-df/transactions/yellow-taxi",
+				"fileSystem": "nyctaxi"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

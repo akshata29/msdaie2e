@@ -1,0 +1,22 @@
+{
+	"name": "1_nycrawreference",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azrawnyctaxiash",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "1_StagingToRaw/Raw/Reference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "nyctaxi-raw-df/reference",
+				"fileSystem": "nyctaxi"
+			}
+		}
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

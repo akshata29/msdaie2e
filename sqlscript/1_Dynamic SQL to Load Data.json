@@ -1,0 +1,20 @@
+{
+	"name": "1_Dynamic SQL to Load Data",
+	"properties": {
+		"folder": {
+			"name": "WorldWideImporters/Logical Data Warehouse/Part 3"
+		},
+		"content": {
+			"query": "USE LogicalDw\nGO\n\n-- Although the SQL code above will load new data, we cannot parameterise the LOCATION value to change the folder where data is stored. \n-- To transform the above code into a more flexible process, we can use dynamic SQL to create the LOCATION parameter and also select the source data using a single date input parameter. \n-- The SQL code below will create a Stored Procedure which takes a single Date parameter as input, selects source data based on this date parameter, \n-- then writes the data out to a destination folder using the same date parameter.\n\n-- DROP PROCEDURE STG.FactSalesLoad\nCREATE PROCEDURE STG.FactSalesLoad @ProcessDate DATE\nWITH ENCRYPTION\nAS\nBEGIN\nDECLARE @location varchar(100)\nIF OBJECT_ID('STG.FactSales') IS NOT NULL\nDROP EXTERNAL TABLE STG.FactSales\n    SET @location = CONCAT('conformed/facts/factsales/incremental/',FORMAT (@ProcessDate, 'yyyy/MM/dd') )\n    DECLARE @CreateExternalTableString NVARCHAR(2000)\n    SET @CreateExternalTableString =\n    'CREATE EXTERNAL TABLE STG.FactSales\n    WITH\n    (\n        LOCATION = ''' + @location + ''',\n        DATA_SOURCE = ExternalCuratedDataLake,\n        FILE_FORMAT = SynapseParquetFormat\n    )\n    AS\n    SELECT\n        --Surrogate Keys\n        DC.CustomerKey,\n        CAST(FORMAT(SO.OrderDate,''yyyyMMdd'') AS INT) as OrderDateKey,\n        DSI.StockItemKey,\n        DS.SupplierKey,\n        --Degenerate Dimensions\n        CAST(SO.OrderID AS INT) AS OrderID,\n        CAST(SOL.OrderLineID AS INT) AS OrderLineID,\n        --Measure\n        CAST(SOL.Quantity AS INT) AS SalesOrderQuantity,\n        CAST(SOL.UnitPrice AS DECIMAL(18,2)) AS SalesOrderUnitPrice\n    FROM LDW.vwSalesOrdersLines SOL\n    INNER JOIN LDW.vwSalesOrders SO ON SOL.OrderID = SO.OrderID\n    LEFT JOIN LDW.vwDimCustomer DC ON DC.CustomerID = SO.CustomerID\n    LEFT JOIN LDW.vwDimStockItem DSI ON DSI.StockItemID = SOL.StockItemID\n    LEFT JOIN LDW.vwStockItems SI ON SI.StockItemID = DSI.StockItemID\n    LEFT JOIN LDW.vwDimSupplier DS ON DS.SupplierID = SI.SupplierID\n    WHERE CAST(CONVERT(varchar, SOL.FilePathDate, 23) AS CHAR(10)) = ''' + CAST(@ProcessDate AS CHAR(10)) + '''  AND CAST(CONVERT(varchar, SO.FilePathDate, 23) AS CHAR(10)) = ''' + CAST(@ProcessDate AS CHAR(10)) + ''''\nEXEC sp_executesql @CreateExternalTableString\nEND;\n\n\n-- Now we can run the Proc which will load the source CSV data into the required destination date folder.\nEXEC STG.FactSalesLoad '2021-04-19';\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "logicaldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

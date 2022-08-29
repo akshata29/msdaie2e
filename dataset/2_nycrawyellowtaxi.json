@@ -1,0 +1,141 @@
+{
+	"name": "2_nycrawyellowtaxi",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azrawdatalakeash",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "2_RawToCurated/Raw/YellowTaxi"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "nyctaxi-raw-df/transactions/yellow-taxi",
+				"fileSystem": "nyctaxi"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "vendor_id",
+				"type": "UTF8"
+			},
+			{
+				"name": "pickup_datetime",
+				"type": "INT96"
+			},
+			{
+				"name": "dropoff_datetime",
+				"type": "INT96"
+			},
+			{
+				"name": "store_and_fwd_flag",
+				"type": "UTF8"
+			},
+			{
+				"name": "rate_code_id",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "pickup_location_id",
+				"type": "INT64"
+			},
+			{
+				"name": "dropoff_location_id",
+				"type": "INT64"
+			},
+			{
+				"name": "pickup_longitude",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "pickup_latitude",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "dropoff_longitude",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "dropoff_latitude",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "passenger_count",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "trip_distance",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "fare_amount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "extra",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "mta_tax",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "tip_amount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "tolls_amount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "ehail_fee",
+				"type": "INT32"
+			},
+			{
+				"name": "improvement_surcharge",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "total_amount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "payment_type",
+				"type": "UTF8"
+			},
+			{
+				"name": "trip_type",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "congestion_surcharge",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "surcharge",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "airport_fee",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "taxi_type",
+				"type": "UTF8"
+			},
+			{
+				"name": "trip_year",
+				"type": "UTF8"
+			},
+			{
+				"name": "trip_month",
+				"type": "UTF8"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}
